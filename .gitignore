@@ -1,7 +1,8 @@
 *.so
 *.txt
 
-settings.json
+
 
 build/
 logs/
+.vscode/
