@@ -14,10 +14,10 @@ all: generate_ptx host_sample
 
 generate_grpc: hvcomm.proto
 	@protoc --proto_path=$(PWD) \
-				 --cpp_out=$(PWD)/grpc_generated \
-				 --grpc_out=$(PWD)/grpc_generated \
-				 --plugin=protoc-gen-grpc=$(shell which grpc_cpp_plugin) \
-				 hvcomm.proto
+					--cpp_out=$(PWD)/grpc_generated \
+					--grpc_out=$(PWD)/grpc_generated \
+					--plugin=protoc-gen-grpc=$(shell which grpc_cpp_plugin) \
+					hvcomm.proto
 
 
 generate_interception: $(INTERCEPT)/interception.cpp $(INTERCEPT)/interception.h

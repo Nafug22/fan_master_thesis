@@ -1,6 +1,8 @@
 #ifndef INTERCEPTION_H
 #define INTERCEPTION_H
 
+#include "client.h"
+
 #include <cuda.h>
 #include <dlfcn.h>
 #include <iostream>
@@ -14,6 +16,9 @@ extern "C" CUresult CUDAAPI getProcAddressBySymbol(const char *symbol, void **pf
 
 typedef void *(*fnDlsym)(void *, const char *);
 void* libcuda_driver_handle = dlopen("libcuda.so", RTLD_LAZY);
+
+std::string server_address = "localhost:50051";
+CUDAAPIClient client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
 
 #define CUDA_CHECK(err) \
     if (err != CUDA_SUCCESS) { \

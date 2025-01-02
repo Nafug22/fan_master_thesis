@@ -44,6 +44,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
     using symbol##handler = CUresult CUDAAPI (params);  \
     auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, CUDA_SYMBOL_STRING(symbol)); \
     printf("Intercepted: %s\n", STRINGIFY(symbol)); \
+    client.CallCudaFunction(STRINGIFY(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
   }
