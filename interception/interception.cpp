@@ -48,6 +48,61 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
     return result;  \
   }
 
+extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+                     unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+                     unsigned int sharedMemBytes, CUstream hStream,
+                     void** kernelParams, void** extra)
+{
+    using cuLaunchKernel_handler = CUresult CUDAAPI (*)(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+                     unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+                     unsigned int sharedMemBytes, CUstream hStream,
+                     void** kernelParams, void** extra);
+    static cuLaunchKernel_handler real_cuLaunchKernel = nullptr;
+
+    // Lazy loading of the real cuLaunchKernel
+    if (!real_cuLaunchKernel) {
+        real_cuLaunchKernel = (cuLaunchKernel_handler)dlsym(RTLD_NEXT, "cuLaunchKernel");
+        if (!real_cuLaunchKernel) {
+            std::cerr << "Error: Unable to load the real cuLaunchKernel function!" << std::endl;
+            return CUDA_ERROR_UNKNOWN;
+        }
+    }
+
+    int param_count = 0;
+    {
+        size_t param_offset, param_size;
+        CUresult result = cuFuncGetParamInfo(CUfunction f, 0, &param_offset, &param_size);
+        while(result == CUDA_SUCCESS){
+            param_count++;
+            result = cuFuncGetParamInfo(CUfunction f, param_count, &param_offset, &param_size);
+        }
+
+        printf("there are %d parameters for the function\n", param_count);
+    }
+
+    CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
+        blockDimX, blockDimY, blockDimZ, 
+        sharedMemBytes, hStream, 
+        kernelParams, extra
+    );
+
+    if (result != CUDA_SUCCESS) {
+        std::cerr << "Error: cuLaunchKernel failed with error code " << result << std::endl;
+    }
+
+    return result;
+
+}
+// CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
+//                     (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+//                      unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+//                      unsigned int sharedMemBytes, CUstream hStream,
+//                      void** kernelParams, void** extra),
+//                     f, gridDimX, gridDimY, gridDimZ,
+//                     blockDimX, blockDimY, blockDimZ,
+//                     sharedMemBytes, hStream,
+//                     kernelParams, extra)
+
 CU_HOOK_DRIVER_FUNC(cuInit,
                     (unsigned int Flags),
                     Flags)
@@ -69,15 +124,15 @@ CU_HOOK_DRIVER_FUNC(cuModuleLoad,
 CU_HOOK_DRIVER_FUNC(cuModuleGetFunction,
                     (CUfunction* hfunc, CUmodule hmod, const char* name),
                     hfunc, hmod, name)
-CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
-                    (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
-                     unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
-                     unsigned int sharedMemBytes, CUstream hStream,
-                     void** kernelParams, void** extra),
-                    f, gridDimX, gridDimY, gridDimZ,
-                    blockDimX, blockDimY, blockDimZ,
-                    sharedMemBytes, hStream,
-                    kernelParams, extra)
+// CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
+//                     (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+//                      unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+//                      unsigned int sharedMemBytes, CUstream hStream,
+//                      void** kernelParams, void** extra),
+//                     f, gridDimX, gridDimY, gridDimZ,
+//                     blockDimX, blockDimY, blockDimZ,
+//                     sharedMemBytes, hStream,
+//                     kernelParams, extra)
 CU_HOOK_DRIVER_FUNC(cuMemcpyDtoH,
                     (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount)
                     dstHost, srcDevice, ByteCount)
