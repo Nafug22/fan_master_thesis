@@ -1,9 +1,12 @@
 #ifndef INTERCEPTION_H
 #define INTERCEPTION_H
 
+#include "compiler.h"
+
 #include <cuda.h>
 #include <dlfcn.h>
 #include <iostream>
+#include <unordered_map>
 
 extern "C" {
 void *__libc_dlsym(void *map, const char *name);
@@ -20,5 +23,8 @@ void* libcuda_driver_handle = dlopen("libcuda.so", RTLD_LAZY);
         std::cerr << "In gpu_instance, CUDA error: " << err << " at line " << __LINE__ << std::endl; \
         exit(EXIT_FAILURE); \
     }
+
+static CUFuncProto func_proto("../vector_add.ptx");
+static std::unordered_map<CUfunction*, std::string> hashfunc;
 
 #endif

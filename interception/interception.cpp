@@ -4,13 +4,14 @@
 
 #define STRINGIFY(x) #x
 
+//==================================================================================================================
 /* Get the real `dlsym` handler in `libdl` */
 static void *real_dlsym(void *handle, const char *symbol) {
   static fnDlsym internal_dlsym =
     (fnDlsym)__libc_dlsym(__libc_dlopen_mode("libdl.so.2", RTLD_LAZY), "dlsym");
   return (*internal_dlsym)(handle, symbol);
 }
-
+//==================================================================================================================
 /* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
 void *dlsym(void *handle, const char *symbol) {
   // for CUDA func
@@ -22,7 +23,7 @@ void *dlsym(void *handle, const char *symbol) {
   // for all other func
   return (real_dlsym(handle, symbol));
 }
-
+//==================================================================================================================
 /* Interception version for `cuGetProcAddress` and all needed CUDA funcs */
 extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int cudaVersion, cuuint64_t flags,
                                            CUdriverProcAddressQueryResult* symbolStatus) {
@@ -37,7 +38,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 
   return result;
 }
-
+//==================================================================================================================
 /* Macro used to generate hooks to CUDA driver functions (that need to be intercepted) */
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params {   \
@@ -47,7 +48,30 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
   }
+//==================================================================================================================
+extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
+    using cuModuleGetFunction_handler = CUresult CUDAAPI (*)(CUfunction* hfunc, CUmodule hmod, const char* name);
+    static cuModuleGetFunction_handler real_cuModuleGetFunction = nullptr;
 
+    // Lazy loading of the real cuModuleGetFunction
+    if (!real_cuModuleGetFunction) {
+        real_cuModuleGetFunction = (cuModuleGetFunction_handler)dlsym(RTLD_NEXT, "cuModuleGetFunction");
+        if (!real_cuModuleGetFunction) {
+            std::cerr << "Error: Unable to load the real cuModuleGetFunction function!" << std::endl;
+            return CUDA_ERROR_UNKNOWN;
+        }
+    }
+
+    hashfunc[hfunc] = name;
+    CUresult result = real_cuModuleGetFunction(hfunc, hmod, name);
+
+    if (result != CUDA_SUCCESS) {
+        std::cerr << "Error: cuModuleGetFunction failed with error code " << result << std::endl;
+    }
+
+    return result;
+}
+//==================================================================================================================
 extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
                      unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
                      unsigned int sharedMemBytes, CUstream hStream,
@@ -68,17 +92,16 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
         }
     }
 
-    int param_count = 0;
-    {
-        size_t param_offset, param_size;
-        CUresult result = cuFuncGetParamInfo(CUfunction f, 0, &param_offset, &param_size);
-        while(result == CUDA_SUCCESS){
-            param_count++;
-            result = cuFuncGetParamInfo(CUfunction f, param_count, &param_offset, &param_size);
-        }
-
-        printf("there are %d parameters for the function\n", param_count);
-    }
+    /**
+     * HACK there should have been another preparing grpc call to get the number of func params.
+     * todo host version needs modification to fit into grpc
+     * 
+     * basic implementation idea: gpu-related variables used as original; host related variables
+     * needs transfer - cast - reconstruction to array
+     */
+    std::vector<std::string> &param_type = func_proto.get_params(hashfunc[&f]);
+    int param_count = param_type.size();
+    printf("the function launched has the name %s, with %d params\n", hashfunc[&f], param_count);
 
     CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
         blockDimX, blockDimY, blockDimZ, 
@@ -93,15 +116,7 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     return result;
 
 }
-// CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
-//                     (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
-//                      unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
-//                      unsigned int sharedMemBytes, CUstream hStream,
-//                      void** kernelParams, void** extra),
-//                     f, gridDimX, gridDimY, gridDimZ,
-//                     blockDimX, blockDimY, blockDimZ,
-//                     sharedMemBytes, hStream,
-//                     kernelParams, extra)
+//==================================================================================================================
 
 CU_HOOK_DRIVER_FUNC(cuInit,
                     (unsigned int Flags),
@@ -121,9 +136,9 @@ CU_HOOK_DRIVER_FUNC(cuMemcpyHtoD,
 CU_HOOK_DRIVER_FUNC(cuModuleLoad,
                     (CUmodule* module, const char* fname),
                     module, fname)
-CU_HOOK_DRIVER_FUNC(cuModuleGetFunction,
-                    (CUfunction* hfunc, CUmodule hmod, const char* name),
-                    hfunc, hmod, name)
+// CU_HOOK_DRIVER_FUNC(cuModuleGetFunction,
+//                     (CUfunction* hfunc, CUmodule hmod, const char* name),
+//                     hfunc, hmod, name)
 // CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
 //                     (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
 //                      unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
