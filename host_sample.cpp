@@ -69,7 +69,7 @@ int main() {
     CUDA_CHECK(cuMemFree(d_B));
     CUDA_CHECK(cuMemFree(d_C));
     CUDA_CHECK(cuModuleUnload(module));
-    CHECK_CUDA(cuCtxDestroy(cuContext));
+    CUDA_CHECK(cuCtxDestroy(context));
 
     return 0;
 }

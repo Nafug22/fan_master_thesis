@@ -2,6 +2,8 @@ PWD := $(shell pwd)
 INTERCEPT_TARGET := ./basic_vector_add.cu
 CUDA_HOME := /usr/local/cuda/lib64
 
+CXX_FLAGS := -std=c++17
+
 INTERCEPT := $(PWD)/interception
 
 BUILD_DIR := $(PWD)/build
@@ -20,11 +22,11 @@ generate_grpc: hvcomm.proto
 				 hvcomm.proto
 
 
-generate_interception: $(INTERCEPT)/interception.cpp $(INTERCEPT)/interception.h
-	g++ -std=c++11 -I/usr/local/cuda/include -shared -fPIC -o interception.so $(INTERCEPT)/interception.cpp -ldl -lcuda
+generate_interception: $(INTERCEPT)/interception.cpp $(INTERCEPT)/interception.h $(INTERCEPT)/compiler.h
+	g++ $(CXX_FLAGS) -I/usr/local/cuda/include -shared -fPIC -o interception.so $(INTERCEPT)/interception.cpp -ldl -lcuda
 
 intercept:
-	g++ -std=c++11 host_sample.cpp -o $(BUILD_DIR)/intercept_target -I/usr/local/cuda/include -lcuda
+	g++ $(CXX_FLAGS) host_sample.cpp -o $(BUILD_DIR)/intercept_target -I/usr/local/cuda/include -lcuda
 # nvcc basic_vector_add_runtime.cu -o intercept_target -lcudart
 # nvcc -o intercept_target intercept_target.o -lcudart -L$(CUDA_HOME)/lib64 -lcuda
 

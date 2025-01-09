@@ -30,7 +30,7 @@ class CUFuncProto{
     };
     ~CUFuncProto(){};
 
-    std::vector<std::string> get_params(const std::string &func_name){
+    std::vector<std::string> &get_params(const std::string func_name){
         return hashmap[func_name];
     }
 

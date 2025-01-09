@@ -15,7 +15,7 @@ static void *real_dlsym(void *handle, const char *symbol) {
 /* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
 void *dlsym(void *handle, const char *symbol) {
   // for CUDA func
-  if(strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress)) == 0){
+  if(strcmp(symbol, STRINGIFY(cuGetProcAddress)) == 0){
     printf("intercepted: %s\n", symbol);
     return (void *) &getProcAddressBySymbol;
   }
@@ -43,7 +43,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params {   \
     using symbol##handler = CUresult CUDAAPI (params);  \
-    auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, CUDA_SYMBOL_STRING(symbol)); \
+    auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
     printf("Intercepted: %s\n", STRINGIFY(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
@@ -101,7 +101,7 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
      */
     std::vector<std::string> &param_type = func_proto.get_params(hashfunc[&f]);
     int param_count = param_type.size();
-    printf("the function launched has the name %s, with %d params\n", hashfunc[&f], param_count);
+    printf("the function launched has the name %s, with %d params\n", hashfunc[&f].c_str(), param_count);
 
     CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
         blockDimX, blockDimY, blockDimZ, 
@@ -149,7 +149,7 @@ CU_HOOK_DRIVER_FUNC(cuModuleLoad,
 //                     sharedMemBytes, hStream,
 //                     kernelParams, extra)
 CU_HOOK_DRIVER_FUNC(cuMemcpyDtoH,
-                    (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount)
+                    (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount),
                     dstHost, srcDevice, ByteCount)
 CU_HOOK_DRIVER_FUNC(cuMemFree,
                     (CUdeviceptr dptr),
