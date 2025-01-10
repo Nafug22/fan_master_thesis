@@ -5,16 +5,17 @@
 #define STRINGIFY(x) #x
 
 /* Get the real `dlsym` handler in `libdl` */
+//FIXME better compatibility for all sys
 static void *real_dlsym(void *handle, const char *symbol) {
   static fnDlsym internal_dlsym =
-    (fnDlsym)__libc_dlsym(__libc_dlopen_mode("libdl.so.2", RTLD_LAZY), "dlsym");
+    (fnDlsym) dlvsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym", "GLIBC_2.34");
   return (*internal_dlsym)(handle, symbol);
 }
 
 /* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
 void *dlsym(void *handle, const char *symbol) {
   // for CUDA func
-  if(strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress)) == 0){
+  if(strcmp(symbol, STRINGIFY(cuGetProcAddress)) == 0){
     printf("intercepted: %s\n", symbol);
     return (void *) &getProcAddressBySymbol;
   }
@@ -42,7 +43,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params {   \
     using symbol##handler = CUresult CUDAAPI (params);  \
-    auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, CUDA_SYMBOL_STRING(symbol)); \
+    auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
     printf("Intercepted: %s\n", STRINGIFY(symbol)); \
     client.CallCudaFunction(STRINGIFY(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
@@ -80,7 +81,7 @@ CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
                     sharedMemBytes, hStream,
                     kernelParams, extra)
 CU_HOOK_DRIVER_FUNC(cuMemcpyDtoH,
-                    (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount)
+                    (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount),
                     dstHost, srcDevice, ByteCount)
 CU_HOOK_DRIVER_FUNC(cuMemFree,
                     (CUdeviceptr dptr),

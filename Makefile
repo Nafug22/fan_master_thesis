@@ -1,6 +1,6 @@
 PWD := $(shell pwd)
 INTERCEPT_TARGET := ./basic_vector_add.cu
-CUDA_HOME := /usr/local/cuda/lib64
+CUDA_HOME := /usr/local/cuda
 
 INTERCEPT := $(PWD)/interception
 
@@ -8,7 +8,7 @@ BUILD_DIR := $(PWD)/build
 LOG_DIR := $(PWD)/logs
 
 generate_ptx: kernel_sample.cu
-	nvcc -ptx nvcc -ptx kernel_sample.cu -o vector_add.ptx
+	nvcc -ptx kernel_sample.cu -o vector_add.ptx
 
 all: generate_ptx host_sample
 
