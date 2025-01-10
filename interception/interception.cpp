@@ -94,23 +94,25 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     }
 
     /**
-     * HACK there should have been another preparing grpc call to get the number of func params.
-     * todo host version needs modification to fit into grpc
-     * 
-     * basic implementation idea: gpu-related variables used as original; host related variables
-     * needs transfer - cast - reconstruction to array
+     * basic implementation idea:
+     * 1. gpu-related variables used as original;
+     * 2. host related variables needs transfer - cast - reconstruction to array
      */
+    // HACK better way to log the error
     if(!hashfunc.count(f)) std::cout << "cuFunc " << f << " not found!\n" << std::endl;
-    else {
-        std::vector<std::string> &param_type = func_proto.get_params(hashfunc[f]);
-        int param_count = param_type.size();
-        printf("the function launched has the name %s, with %d params\n", hashfunc[f].c_str(), param_count);
+    std::vector<std::string> &param_type = func_proto.get_params(hashfunc[f]);
+    int param_count = param_type.size();
+    printf("the function launched has the name %s, with %d params\n", hashfunc[f].c_str(), param_count);
+
+    void *convertedParams[param_count];
+    for(int i = 0; i < param_count; i++){
+      convertedParams[i] = kernelParams[i];
     }
 
     CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
         blockDimX, blockDimY, blockDimZ, 
         sharedMemBytes, hStream, 
-        kernelParams, extra
+        convertedParams, extra
     );
 
     if (result != CUDA_SUCCESS) {
