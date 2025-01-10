@@ -6,9 +6,10 @@
 
 //==================================================================================================================
 /* Get the real `dlsym` handler in `libdl` */
+//FIXME better compatibility for all sys
 static void *real_dlsym(void *handle, const char *symbol) {
   static fnDlsym internal_dlsym =
-    (fnDlsym)__libc_dlsym(__libc_dlopen_mode("libdl.so.2", RTLD_LAZY), "dlsym");
+    (fnDlsym) dlvsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym", "GLIBC_2.34");
   return (*internal_dlsym)(handle, symbol);
 }
 //==================================================================================================================
