@@ -109,6 +109,17 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
       convertedParams[i] = kernelParams[i];
     }
 
+    /**
+     * todo: check the grpc massega transfer validity
+     * 1. check whether the N is dereferenced correctly
+     * 
+     * // FIXME currently only the specific vector add is implemented 
+     */
+    for(int i = 0; i < param_count; i++){
+      if(param_type[i] == ".u64") std::cout << "param_" << i + 1 << " = " << *reinterpret_cast<uint64_t*>(kernelParams[i]) << std::endl;
+      if(param_type[i] == ".u32") std::cout << "param_" << i + 1 << " = " << *reinterpret_cast<uint32_t*>(kernelParams[i]) << std::endl;
+    }
+
     CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
         blockDimX, blockDimY, blockDimZ, 
         sharedMemBytes, hStream, 
@@ -127,21 +138,26 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
 CU_HOOK_DRIVER_FUNC(cuInit,
                     (unsigned int Flags),
                     Flags)
+
+//todo grpc version: get a device from the pool (currently only one)
 CU_HOOK_DRIVER_FUNC(cuDeviceGet,
                     (CUdevice* device, int ordinal),
                     device, ordinal)
 CU_HOOK_DRIVER_FUNC(cuCtxCreate,
                     (CUcontext* pctx, unsigned int flags, CUdevice dev),
                     pctx, flags, dev)
+//todo grpc version: return the same value and set it to the dptr
 CU_HOOK_DRIVER_FUNC(cuMemAlloc,
                     (CUdeviceptr* dptr, size_t bytesize),
                     dptr, bytesize)
-CU_HOOK_DRIVER_FUNC(cuMemcpyHtoD,
-                    (CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount),
-                    dstDevice, srcHost, ByteCount)
+//todo grpc version: return the same value and set it to the dptr
 CU_HOOK_DRIVER_FUNC(cuModuleLoad,
                     (CUmodule* module, const char* fname),
                     module, fname)
+//todo grpc version: host as shared memory, device as message
+CU_HOOK_DRIVER_FUNC(cuMemcpyHtoD,
+                    (CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount),
+                    dstDevice, srcHost, ByteCount)
 // CU_HOOK_DRIVER_FUNC(cuModuleGetFunction,
 //                     (CUfunction* hfunc, CUmodule hmod, const char* name),
 //                     hfunc, hmod, name)
@@ -157,12 +173,15 @@ CU_HOOK_DRIVER_FUNC(cuModuleLoad,
 CU_HOOK_DRIVER_FUNC(cuMemcpyDtoH,
                     (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount),
                     dstHost, srcDevice, ByteCount)
+//todo grpc version: use the CUdeviceptr value directly
 CU_HOOK_DRIVER_FUNC(cuMemFree,
                     (CUdeviceptr dptr),
                     dptr)
+//todo grpc version: use the CUmodule value directly
 CU_HOOK_DRIVER_FUNC(cuModuleUnload,
                     (CUmodule hmod),
                     hmod)
+//todo grpc version: issue the signal only
 CU_HOOK_DRIVER_FUNC(cuCtxDestroy,
                     (CUcontext ctx),
                     ctx)
