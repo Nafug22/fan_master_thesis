@@ -25,12 +25,18 @@ class CUFuncProto{
     /**
      * @param ptx_file the correct file directory of the ptx file
      */
-    CUFuncProto(std::string file_name) : ptx_file(file_name){
+    CUFuncProto(std::string file_name){
+        ptx_file.open(file_name);
+        if(!ptx_file.is_open()){
+            std::cerr << "Error opening the file!" << std::endl;
+        }
         initialize();
+        ptx_file.close();
     };
     ~CUFuncProto(){};
 
     std::vector<std::string> &get_params(const std::string func_name){
+        if(!hashmap.count(func_name)) printf("not finding the func_name\n");
         return hashmap[func_name];
     }
 
@@ -38,6 +44,7 @@ class CUFuncProto{
      * @brief tests the result
      */
     void test(){
+        if(hashmap.empty()) printf("No CUfunction found!\n");
         for(auto &[key, val] : hashmap){
             printf("%s: ", key.c_str());
             for(auto &param : val) printf("%s ", param.c_str());
@@ -80,8 +87,6 @@ class CUFuncProto{
         while(std::getline(ptx_file, line)) {
             if(line.find(".entry") != std::string::npos) convert(line);
         }
-
-        ptx_file.close();
     }
 };
 

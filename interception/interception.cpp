@@ -44,7 +44,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params {   \
     using symbol##handler = CUresult CUDAAPI (params);  \
-    auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
+    static auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
     printf("Intercepted: %s\n", STRINGIFY(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
@@ -56,18 +56,18 @@ extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod
 
     // Lazy loading of the real cuModuleGetFunction
     if (!real_cuModuleGetFunction) {
-        real_cuModuleGetFunction = (cuModuleGetFunction_handler)dlsym(RTLD_NEXT, "cuModuleGetFunction");
-        if (!real_cuModuleGetFunction) {
-            std::cerr << "Error: Unable to load the real cuModuleGetFunction function!" << std::endl;
-            return CUDA_ERROR_UNKNOWN;
-        }
+      real_cuModuleGetFunction = (cuModuleGetFunction_handler)dlsym(RTLD_NEXT, "cuModuleGetFunction");
+      if (!real_cuModuleGetFunction) {
+        std::cerr << "Error: Unable to load the real cuModuleGetFunction function!" << std::endl;
+        return CUDA_ERROR_UNKNOWN;
+      }
     }
 
-    hashfunc[hfunc] = name;
     CUresult result = real_cuModuleGetFunction(hfunc, hmod, name);
+    hashfunc[*hfunc] = name;
 
     if (result != CUDA_SUCCESS) {
-        std::cerr << "Error: cuModuleGetFunction failed with error code " << result << std::endl;
+      std::cerr << "Error: cuModuleGetFunction failed with error code " << result << std::endl;
     }
 
     return result;
@@ -100,9 +100,12 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
      * basic implementation idea: gpu-related variables used as original; host related variables
      * needs transfer - cast - reconstruction to array
      */
-    std::vector<std::string> &param_type = func_proto.get_params(hashfunc[&f]);
-    int param_count = param_type.size();
-    printf("the function launched has the name %s, with %d params\n", hashfunc[&f].c_str(), param_count);
+    if(!hashfunc.count(f)) std::cout << "cuFunc " << f << " not found!\n" << std::endl;
+    else {
+        std::vector<std::string> &param_type = func_proto.get_params(hashfunc[f]);
+        int param_count = param_type.size();
+        printf("the function launched has the name %s, with %d params\n", hashfunc[f].c_str(), param_count);
+    }
 
     CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
         blockDimX, blockDimY, blockDimZ, 

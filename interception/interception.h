@@ -24,7 +24,7 @@ void* libcuda_driver_handle = dlopen("libcuda.so", RTLD_LAZY);
         exit(EXIT_FAILURE); \
     }
 
-static CUFuncProto func_proto("../vector_add.ptx");
-static std::unordered_map<CUfunction*, std::string> hashfunc;
+static CUFuncProto func_proto("vector_add.ptx");
+static std::unordered_map<CUfunction, std::string> hashfunc;
 
 #endif
