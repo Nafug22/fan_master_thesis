@@ -4,17 +4,19 @@
 
 #define STRINGIFY(x) #x
 
+//==================================================================================================================
 /* Get the real `dlsym` handler in `libdl` */
+//FIXME better compatibility for all sys
 static void *real_dlsym(void *handle, const char *symbol) {
   static fnDlsym internal_dlsym =
-    (fnDlsym)__libc_dlsym(__libc_dlopen_mode("libdl.so.2", RTLD_LAZY), "dlsym");
+    (fnDlsym) dlvsym(dlopen("libdl.so.2", RTLD_LAZY), "dlsym", "GLIBC_2.34");
   return (*internal_dlsym)(handle, symbol);
 }
-
+//==================================================================================================================
 /* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
 void *dlsym(void *handle, const char *symbol) {
   // for CUDA func
-  if(strcmp(symbol, CUDA_SYMBOL_STRING(cuGetProcAddress)) == 0){
+  if(strcmp(symbol, STRINGIFY(cuGetProcAddress)) == 0){
     printf("intercepted: %s\n", symbol);
     return (void *) &getProcAddressBySymbol;
   }
@@ -22,7 +24,7 @@ void *dlsym(void *handle, const char *symbol) {
   // for all other func
   return (real_dlsym(handle, symbol));
 }
-
+//==================================================================================================================
 /* Interception version for `cuGetProcAddress` and all needed CUDA funcs */
 extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int cudaVersion, cuuint64_t flags,
                                            CUdriverProcAddressQueryResult* symbolStatus) {
@@ -37,57 +39,150 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 
   return result;
 }
-
+//==================================================================================================================
 /* Macro used to generate hooks to CUDA driver functions (that need to be intercepted) */
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params {   \
     using symbol##handler = CUresult CUDAAPI (params);  \
-    auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, CUDA_SYMBOL_STRING(symbol)); \
+    static auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
     printf("Intercepted: %s\n", STRINGIFY(symbol)); \
     client.CallCudaFunction(STRINGIFY(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
   }
+//==================================================================================================================
+extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
+    using cuModuleGetFunction_handler = CUresult CUDAAPI (*)(CUfunction* hfunc, CUmodule hmod, const char* name);
+    static cuModuleGetFunction_handler real_cuModuleGetFunction = nullptr;
+
+    // Lazy loading of the real cuModuleGetFunction
+    if (!real_cuModuleGetFunction) {
+      real_cuModuleGetFunction = (cuModuleGetFunction_handler)dlsym(RTLD_NEXT, "cuModuleGetFunction");
+      if (!real_cuModuleGetFunction) {
+        std::cerr << "Error: Unable to load the real cuModuleGetFunction function!" << std::endl;
+        return CUDA_ERROR_UNKNOWN;
+      }
+    }
+
+    CUresult result = real_cuModuleGetFunction(hfunc, hmod, name);
+    hashfunc[*hfunc] = name;
+
+    if (result != CUDA_SUCCESS) {
+      std::cerr << "Error: cuModuleGetFunction failed with error code " << result << std::endl;
+    }
+
+    return result;
+}
+//==================================================================================================================
+extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+                     unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+                     unsigned int sharedMemBytes, CUstream hStream,
+                     void** kernelParams, void** extra)
+{
+    using cuLaunchKernel_handler = CUresult CUDAAPI (*)(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+                     unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+                     unsigned int sharedMemBytes, CUstream hStream,
+                     void** kernelParams, void** extra);
+    static cuLaunchKernel_handler real_cuLaunchKernel = nullptr;
+
+    // Lazy loading of the real cuLaunchKernel
+    if (!real_cuLaunchKernel) {
+        real_cuLaunchKernel = (cuLaunchKernel_handler)dlsym(RTLD_NEXT, "cuLaunchKernel");
+        if (!real_cuLaunchKernel) {
+            std::cerr << "Error: Unable to load the real cuLaunchKernel function!" << std::endl;
+            return CUDA_ERROR_UNKNOWN;
+        }
+    }
+
+    /**
+     * basic implementation idea:
+     * 1. gpu-related variables used as original;
+     * 2. host related variables needs transfer - cast - reconstruction to array
+     */
+    // HACK better way to log the error
+    if(!hashfunc.count(f)) std::cout << "cuFunc " << f << " not found!\n" << std::endl;
+    std::vector<std::string> &param_type = func_proto.get_params(hashfunc[f]);
+    int param_count = param_type.size();
+    printf("the function launched has the name %s, with %d params\n", hashfunc[f].c_str(), param_count);
+
+    void *convertedParams[param_count];
+    for(int i = 0; i < param_count; i++){
+      convertedParams[i] = kernelParams[i];
+    }
+
+    /**
+     * todo: check the grpc massega transfer validity
+     * 1. check whether the N is dereferenced correctly
+     * 
+     * // FIXME currently only the specific vector add is implemented 
+     */
+    for(int i = 0; i < param_count; i++){
+      if(param_type[i] == ".u64") std::cout << "param_" << i + 1 << " = " << *reinterpret_cast<uint64_t*>(kernelParams[i]) << std::endl;
+      if(param_type[i] == ".u32") std::cout << "param_" << i + 1 << " = " << *reinterpret_cast<uint32_t*>(kernelParams[i]) << std::endl;
+    }
+
+    CUresult result = real_cuLaunchKernel(f, gridDimX, gridDimY, gridDimZ, 
+        blockDimX, blockDimY, blockDimZ, 
+        sharedMemBytes, hStream, 
+        convertedParams, extra
+    );
+
+    if (result != CUDA_SUCCESS) {
+        std::cerr << "Error: cuLaunchKernel failed with error code " << result << std::endl;
+    }
+
+    return result;
+
+}
+//==================================================================================================================
 
 CU_HOOK_DRIVER_FUNC(cuInit,
                     (unsigned int Flags),
                     Flags)
+
+//todo grpc version: get a device from the pool (currently only one)
 CU_HOOK_DRIVER_FUNC(cuDeviceGet,
                     (CUdevice* device, int ordinal),
                     device, ordinal)
 CU_HOOK_DRIVER_FUNC(cuCtxCreate,
                     (CUcontext* pctx, unsigned int flags, CUdevice dev),
                     pctx, flags, dev)
+//todo grpc version: return the same value and set it to the dptr
 CU_HOOK_DRIVER_FUNC(cuMemAlloc,
                     (CUdeviceptr* dptr, size_t bytesize),
                     dptr, bytesize)
-CU_HOOK_DRIVER_FUNC(cuMemcpyHtoD,
-                    (CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount),
-                    dstDevice, srcHost, ByteCount)
+//todo grpc version: return the same value and set it to the dptr
 CU_HOOK_DRIVER_FUNC(cuModuleLoad,
                     (CUmodule* module, const char* fname),
                     module, fname)
-CU_HOOK_DRIVER_FUNC(cuModuleGetFunction,
-                    (CUfunction* hfunc, CUmodule hmod, const char* name),
-                    hfunc, hmod, name)
-CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
-                    (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
-                     unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
-                     unsigned int sharedMemBytes, CUstream hStream,
-                     void** kernelParams, void** extra),
-                    f, gridDimX, gridDimY, gridDimZ,
-                    blockDimX, blockDimY, blockDimZ,
-                    sharedMemBytes, hStream,
-                    kernelParams, extra)
+//todo grpc version: host as shared memory, device as message
+CU_HOOK_DRIVER_FUNC(cuMemcpyHtoD,
+                    (CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount),
+                    dstDevice, srcHost, ByteCount)
+// CU_HOOK_DRIVER_FUNC(cuModuleGetFunction,
+//                     (CUfunction* hfunc, CUmodule hmod, const char* name),
+//                     hfunc, hmod, name)
+// CU_HOOK_DRIVER_FUNC(cuLaunchKernel,
+//                     (CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
+//                      unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
+//                      unsigned int sharedMemBytes, CUstream hStream,
+//                      void** kernelParams, void** extra),
+//                     f, gridDimX, gridDimY, gridDimZ,
+//                     blockDimX, blockDimY, blockDimZ,
+//                     sharedMemBytes, hStream,
+//                     kernelParams, extra)
 CU_HOOK_DRIVER_FUNC(cuMemcpyDtoH,
-                    (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount)
+                    (void* dstHost, CUdeviceptr srcDevice, size_t ByteCount),
                     dstHost, srcDevice, ByteCount)
+//todo grpc version: use the CUdeviceptr value directly
 CU_HOOK_DRIVER_FUNC(cuMemFree,
                     (CUdeviceptr dptr),
                     dptr)
+//todo grpc version: use the CUmodule value directly
 CU_HOOK_DRIVER_FUNC(cuModuleUnload,
                     (CUmodule hmod),
                     hmod)
+//todo grpc version: issue the signal only
 CU_HOOK_DRIVER_FUNC(cuCtxDestroy,
                     (CUcontext ctx),
                     ctx)
