@@ -23,7 +23,8 @@ class CUDAAPIClient {
     CUDAAPIClient(std::shared_ptr<Channel> channel)
         : stub_(CUDAAPIService::NewStub(channel)){}
 
-    void CallCudaFunction(const std::string &function_name);
+    template <class MessageType>
+    void CallCudaFunction(const std::string &function_name, std::vector<std::string> &string_args, std::vector<uint64_t> &scalar_args);
 
   private:
     std::unique_ptr<CUDAAPIService::Stub> stub_;
