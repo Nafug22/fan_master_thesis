@@ -1,19 +1,19 @@
 syntax = "proto3";
 
-//the class name
 package hvcomm;
 
 // The generic request message
 message RequestMessage {
     string client_name = 1;
     string function_name = 2;
-    repeated string parameters = 3;
+    repeated string string_parameters = 3;
+    repeated uint64 scalar_parameters = 4;
 }
 
 // The generic response message
 message ResponseMessage {
-    string message = 1;
-    int32 status = 2;
+    int32 curesult = 1;
+    uint64 scalar = 2;
 }
 
 // The gRPC service definition

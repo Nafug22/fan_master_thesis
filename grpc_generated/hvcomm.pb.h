@@ -218,33 +218,27 @@ class ResponseMessage final
 
   // accessors -------------------------------------------------------
   enum : int {
-    kMessageFieldNumber = 1,
-    kStatusFieldNumber = 2,
+    kScalarFieldNumber = 2,
+    kCuresultFieldNumber = 1,
   };
-  // string message = 1;
-  void clear_message() ;
-  const std::string& message() const;
-  template <typename Arg_ = const std::string&, typename... Args_>
-  void set_message(Arg_&& arg, Args_... args);
-  std::string* mutable_message();
-  PROTOBUF_NODISCARD std::string* release_message();
-  void set_allocated_message(std::string* value);
+  // uint64 scalar = 2;
+  void clear_scalar() ;
+  ::uint64_t scalar() const;
+  void set_scalar(::uint64_t value);
 
   private:
-  const std::string& _internal_message() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(
-      const std::string& value);
-  std::string* _internal_mutable_message();
+  ::uint64_t _internal_scalar() const;
+  void _internal_set_scalar(::uint64_t value);
 
   public:
-  // int32 status = 2;
-  void clear_status() ;
-  ::int32_t status() const;
-  void set_status(::int32_t value);
+  // int32 curesult = 1;
+  void clear_curesult() ;
+  ::int32_t curesult() const;
+  void set_curesult(::int32_t value);
 
   private:
-  ::int32_t _internal_status() const;
-  void _internal_set_status(::int32_t value);
+  ::int32_t _internal_curesult() const;
+  void _internal_set_curesult(::int32_t value);
 
   public:
   // @@protoc_insertion_point(class_scope:hvcomm.ResponseMessage)
@@ -253,7 +247,7 @@ class ResponseMessage final
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
       1, 2, 0,
-      38, 2>
+      0, 2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -270,8 +264,8 @@ class ResponseMessage final
     inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
                           ::google::protobuf::Arena* arena, const Impl_& from,
                           const ResponseMessage& from_msg);
-    ::google::protobuf::internal::ArenaStringPtr message_;
-    ::int32_t status_;
+    ::uint64_t scalar_;
+    ::int32_t curesult_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -427,30 +421,49 @@ class RequestMessage final
 
   // accessors -------------------------------------------------------
   enum : int {
-    kParametersFieldNumber = 3,
+    kStringParametersFieldNumber = 3,
+    kScalarParametersFieldNumber = 4,
     kClientNameFieldNumber = 1,
     kFunctionNameFieldNumber = 2,
   };
-  // repeated string parameters = 3;
-  int parameters_size() const;
+  // repeated string string_parameters = 3;
+  int string_parameters_size() const;
   private:
-  int _internal_parameters_size() const;
+  int _internal_string_parameters_size() const;
 
   public:
-  void clear_parameters() ;
-  const std::string& parameters(int index) const;
-  std::string* mutable_parameters(int index);
+  void clear_string_parameters() ;
+  const std::string& string_parameters(int index) const;
+  std::string* mutable_string_parameters(int index);
   template <typename Arg_ = const std::string&, typename... Args_>
-  void set_parameters(int index, Arg_&& value, Args_... args);
-  std::string* add_parameters();
+  void set_string_parameters(int index, Arg_&& value, Args_... args);
+  std::string* add_string_parameters();
   template <typename Arg_ = const std::string&, typename... Args_>
-  void add_parameters(Arg_&& value, Args_... args);
-  const ::google::protobuf::RepeatedPtrField<std::string>& parameters() const;
-  ::google::protobuf::RepeatedPtrField<std::string>* mutable_parameters();
+  void add_string_parameters(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<std::string>& string_parameters() const;
+  ::google::protobuf::RepeatedPtrField<std::string>* mutable_string_parameters();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<std::string>& _internal_parameters() const;
-  ::google::protobuf::RepeatedPtrField<std::string>* _internal_mutable_parameters();
+  const ::google::protobuf::RepeatedPtrField<std::string>& _internal_string_parameters() const;
+  ::google::protobuf::RepeatedPtrField<std::string>* _internal_mutable_string_parameters();
+
+  public:
+  // repeated uint64 scalar_parameters = 4;
+  int scalar_parameters_size() const;
+  private:
+  int _internal_scalar_parameters_size() const;
+
+  public:
+  void clear_scalar_parameters() ;
+  ::uint64_t scalar_parameters(int index) const;
+  void set_scalar_parameters(int index, ::uint64_t value);
+  void add_scalar_parameters(::uint64_t value);
+  const ::google::protobuf::RepeatedField<::uint64_t>& scalar_parameters() const;
+  ::google::protobuf::RepeatedField<::uint64_t>* mutable_scalar_parameters();
+
+  private:
+  const ::google::protobuf::RepeatedField<::uint64_t>& _internal_scalar_parameters() const;
+  ::google::protobuf::RepeatedField<::uint64_t>* _internal_mutable_scalar_parameters();
 
   public:
   // string client_name = 1;
@@ -490,8 +503,8 @@ class RequestMessage final
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      2, 3, 0,
-      64, 2>
+      2, 4, 0,
+      71, 2>
       _table_;
 
   friend class ::google::protobuf::MessageLite;
@@ -508,7 +521,9 @@ class RequestMessage final
     inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
                           ::google::protobuf::Arena* arena, const Impl_& from,
                           const RequestMessage& from_msg);
-    ::google::protobuf::RepeatedPtrField<std::string> parameters_;
+    ::google::protobuf::RepeatedPtrField<std::string> string_parameters_;
+    ::google::protobuf::RepeatedField<::uint64_t> scalar_parameters_;
+    ::google::protobuf::internal::CachedSize _scalar_parameters_cached_byte_size_;
     ::google::protobuf::internal::ArenaStringPtr client_name_;
     ::google::protobuf::internal::ArenaStringPtr function_name_;
     ::google::protobuf::internal::CachedSize _cached_size_;
@@ -630,142 +645,161 @@ inline void RequestMessage::set_allocated_function_name(std::string* value) {
   // @@protoc_insertion_point(field_set_allocated:hvcomm.RequestMessage.function_name)
 }
 
-// repeated string parameters = 3;
-inline int RequestMessage::_internal_parameters_size() const {
-  return _internal_parameters().size();
+// repeated string string_parameters = 3;
+inline int RequestMessage::_internal_string_parameters_size() const {
+  return _internal_string_parameters().size();
 }
-inline int RequestMessage::parameters_size() const {
-  return _internal_parameters_size();
+inline int RequestMessage::string_parameters_size() const {
+  return _internal_string_parameters_size();
 }
-inline void RequestMessage::clear_parameters() {
+inline void RequestMessage::clear_string_parameters() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.parameters_.Clear();
+  _impl_.string_parameters_.Clear();
 }
-inline std::string* RequestMessage::add_parameters() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline std::string* RequestMessage::add_string_parameters() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  std::string* _s = _internal_mutable_parameters()->Add();
-  // @@protoc_insertion_point(field_add_mutable:hvcomm.RequestMessage.parameters)
+  std::string* _s = _internal_mutable_string_parameters()->Add();
+  // @@protoc_insertion_point(field_add_mutable:hvcomm.RequestMessage.string_parameters)
   return _s;
 }
-inline const std::string& RequestMessage::parameters(int index) const
+inline const std::string& RequestMessage::string_parameters(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:hvcomm.RequestMessage.parameters)
-  return _internal_parameters().Get(index);
+  // @@protoc_insertion_point(field_get:hvcomm.RequestMessage.string_parameters)
+  return _internal_string_parameters().Get(index);
 }
-inline std::string* RequestMessage::mutable_parameters(int index)
+inline std::string* RequestMessage::mutable_string_parameters(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:hvcomm.RequestMessage.parameters)
-  return _internal_mutable_parameters()->Mutable(index);
+  // @@protoc_insertion_point(field_mutable:hvcomm.RequestMessage.string_parameters)
+  return _internal_mutable_string_parameters()->Mutable(index);
 }
 template <typename Arg_, typename... Args_>
-inline void RequestMessage::set_parameters(int index, Arg_&& value, Args_... args) {
+inline void RequestMessage::set_string_parameters(int index, Arg_&& value, Args_... args) {
   ::google::protobuf::internal::AssignToString(
-      *_internal_mutable_parameters()->Mutable(index),
+      *_internal_mutable_string_parameters()->Mutable(index),
       std::forward<Arg_>(value), args... );
-  // @@protoc_insertion_point(field_set:hvcomm.RequestMessage.parameters)
+  // @@protoc_insertion_point(field_set:hvcomm.RequestMessage.string_parameters)
 }
 template <typename Arg_, typename... Args_>
-inline void RequestMessage::add_parameters(Arg_&& value, Args_... args) {
+inline void RequestMessage::add_string_parameters(Arg_&& value, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::google::protobuf::internal::AddToRepeatedPtrField(*_internal_mutable_parameters(),
+  ::google::protobuf::internal::AddToRepeatedPtrField(*_internal_mutable_string_parameters(),
                                std::forward<Arg_>(value),
                                args... );
-  // @@protoc_insertion_point(field_add:hvcomm.RequestMessage.parameters)
+  // @@protoc_insertion_point(field_add:hvcomm.RequestMessage.string_parameters)
 }
 inline const ::google::protobuf::RepeatedPtrField<std::string>&
-RequestMessage::parameters() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:hvcomm.RequestMessage.parameters)
-  return _internal_parameters();
+RequestMessage::string_parameters() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:hvcomm.RequestMessage.string_parameters)
+  return _internal_string_parameters();
 }
 inline ::google::protobuf::RepeatedPtrField<std::string>*
-RequestMessage::mutable_parameters() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable_list:hvcomm.RequestMessage.parameters)
+RequestMessage::mutable_string_parameters() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:hvcomm.RequestMessage.string_parameters)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_parameters();
+  return _internal_mutable_string_parameters();
 }
 inline const ::google::protobuf::RepeatedPtrField<std::string>&
-RequestMessage::_internal_parameters() const {
+RequestMessage::_internal_string_parameters() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.parameters_;
+  return _impl_.string_parameters_;
 }
 inline ::google::protobuf::RepeatedPtrField<std::string>*
-RequestMessage::_internal_mutable_parameters() {
+RequestMessage::_internal_mutable_string_parameters() {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.parameters_;
+  return &_impl_.string_parameters_;
+}
+
+// repeated uint64 scalar_parameters = 4;
+inline int RequestMessage::_internal_scalar_parameters_size() const {
+  return _internal_scalar_parameters().size();
+}
+inline int RequestMessage::scalar_parameters_size() const {
+  return _internal_scalar_parameters_size();
+}
+inline void RequestMessage::clear_scalar_parameters() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.scalar_parameters_.Clear();
+}
+inline ::uint64_t RequestMessage::scalar_parameters(int index) const {
+  // @@protoc_insertion_point(field_get:hvcomm.RequestMessage.scalar_parameters)
+  return _internal_scalar_parameters().Get(index);
+}
+inline void RequestMessage::set_scalar_parameters(int index, ::uint64_t value) {
+  _internal_mutable_scalar_parameters()->Set(index, value);
+  // @@protoc_insertion_point(field_set:hvcomm.RequestMessage.scalar_parameters)
+}
+inline void RequestMessage::add_scalar_parameters(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_scalar_parameters()->Add(value);
+  // @@protoc_insertion_point(field_add:hvcomm.RequestMessage.scalar_parameters)
+}
+inline const ::google::protobuf::RepeatedField<::uint64_t>& RequestMessage::scalar_parameters() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:hvcomm.RequestMessage.scalar_parameters)
+  return _internal_scalar_parameters();
+}
+inline ::google::protobuf::RepeatedField<::uint64_t>* RequestMessage::mutable_scalar_parameters()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable_list:hvcomm.RequestMessage.scalar_parameters)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_scalar_parameters();
+}
+inline const ::google::protobuf::RepeatedField<::uint64_t>&
+RequestMessage::_internal_scalar_parameters() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.scalar_parameters_;
+}
+inline ::google::protobuf::RepeatedField<::uint64_t>* RequestMessage::_internal_mutable_scalar_parameters() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.scalar_parameters_;
 }
 
 // -------------------------------------------------------------------
 
 // ResponseMessage
 
-// string message = 1;
-inline void ResponseMessage::clear_message() {
+// int32 curesult = 1;
+inline void ResponseMessage::clear_curesult() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.message_.ClearToEmpty();
+  _impl_.curesult_ = 0;
 }
-inline const std::string& ResponseMessage::message() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:hvcomm.ResponseMessage.message)
-  return _internal_message();
+inline ::int32_t ResponseMessage::curesult() const {
+  // @@protoc_insertion_point(field_get:hvcomm.ResponseMessage.curesult)
+  return _internal_curesult();
 }
-template <typename Arg_, typename... Args_>
-inline PROTOBUF_ALWAYS_INLINE void ResponseMessage::set_message(Arg_&& arg,
-                                                     Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.message_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:hvcomm.ResponseMessage.message)
+inline void ResponseMessage::set_curesult(::int32_t value) {
+  _internal_set_curesult(value);
+  // @@protoc_insertion_point(field_set:hvcomm.ResponseMessage.curesult)
 }
-inline std::string* ResponseMessage::mutable_message() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  std::string* _s = _internal_mutable_message();
-  // @@protoc_insertion_point(field_mutable:hvcomm.ResponseMessage.message)
-  return _s;
-}
-inline const std::string& ResponseMessage::_internal_message() const {
+inline ::int32_t ResponseMessage::_internal_curesult() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.message_.Get();
+  return _impl_.curesult_;
 }
-inline void ResponseMessage::_internal_set_message(const std::string& value) {
+inline void ResponseMessage::_internal_set_curesult(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.message_.Set(value, GetArena());
-}
-inline std::string* ResponseMessage::_internal_mutable_message() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.message_.Mutable( GetArena());
-}
-inline std::string* ResponseMessage::release_message() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:hvcomm.ResponseMessage.message)
-  return _impl_.message_.Release();
-}
-inline void ResponseMessage::set_allocated_message(std::string* value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.message_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.message_.IsDefault()) {
-    _impl_.message_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:hvcomm.ResponseMessage.message)
+  _impl_.curesult_ = value;
 }
 
-// int32 status = 2;
-inline void ResponseMessage::clear_status() {
+// uint64 scalar = 2;
+inline void ResponseMessage::clear_scalar() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.status_ = 0;
+  _impl_.scalar_ = ::uint64_t{0u};
 }
-inline ::int32_t ResponseMessage::status() const {
-  // @@protoc_insertion_point(field_get:hvcomm.ResponseMessage.status)
-  return _internal_status();
+inline ::uint64_t ResponseMessage::scalar() const {
+  // @@protoc_insertion_point(field_get:hvcomm.ResponseMessage.scalar)
+  return _internal_scalar();
 }
-inline void ResponseMessage::set_status(::int32_t value) {
-  _internal_set_status(value);
-  // @@protoc_insertion_point(field_set:hvcomm.ResponseMessage.status)
+inline void ResponseMessage::set_scalar(::uint64_t value) {
+  _internal_set_scalar(value);
+  // @@protoc_insertion_point(field_set:hvcomm.ResponseMessage.scalar)
 }
-inline ::int32_t ResponseMessage::_internal_status() const {
+inline ::uint64_t ResponseMessage::_internal_scalar() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.status_;
+  return _impl_.scalar_;
 }
-inline void ResponseMessage::_internal_set_status(::int32_t value) {
+inline void ResponseMessage::_internal_set_scalar(::uint64_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.status_ = value;
+  _impl_.scalar_ = value;
 }
 
 #ifdef __GNUC__
