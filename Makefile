@@ -8,19 +8,25 @@ INTERCEPT := $(PWD)/interception
 
 BUILD_DIR := $(PWD)/build
 LOG_DIR := $(PWD)/logs
+GRPC_DIR := $(PWD)/grpc_generated
+VCPKG_DIR := /home/ubuntu/fan_thesis/vcpkg
+PROTOC_GEN_GRPC := /home/ubuntu/fan_thesis/vcpkg/installed/x64-linux/tools/grpc/grpc_cpp_plugin
 
+PROTOC := $(VCPKG_DIR)/installed/x64-linux/tools/protobuf/protoc
 generate_ptx: kernel_sample.cu
 	nvcc -ptx kernel_sample.cu -o vector_add.ptx
 
 all: generate_ptx host_sample
 
 generate_grpc: hvcomm.proto
-	@protoc --proto_path=$(PWD) \
+	@$(PROTOC) --proto_path=$(PWD) \
 					--cpp_out=$(PWD)/grpc_generated \
 					--grpc_out=$(PWD)/grpc_generated \
-					--plugin=protoc-gen-grpc=$(shell which grpc_cpp_plugin) \
+					--plugin=protoc-gen-grpc=$(PROTOC_GEN_GRPC) \
 					hvcomm.proto
 
+clean_grpc:
+	rm -r $(GRPC_DIR)/*
 
 generate_interception: $(INTERCEPT)/interception.cpp $(INTERCEPT)/interception.h $(INTERCEPT)/compiler.h
 	g++ $(CXX_FLAGS) -I/usr/local/cuda/include -shared -fPIC -o interception.so $(INTERCEPT)/interception.cpp -ldl -lcuda

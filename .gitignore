@@ -2,7 +2,7 @@
 *.txt
 
 
-
+grpc_generated/
 build/
 logs/
 test/
