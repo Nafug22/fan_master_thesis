@@ -1,15 +1,12 @@
-#include <iostream>
-#include <memory>
-#include <string>
-
 #include "vgpu.h"
-
 #include "hvcomm.grpc.pb.h"
 
+#include <grpcpp/grpcpp.h>
 #include <cuda.h>
+
 #include <vector>
 #include <iostream>
-#include <grpcpp/grpcpp.h>
+#include <string>
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -39,7 +36,7 @@ class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
     std::vector<std::unique_ptr<CUfunction>> cufuncs_;
     //HACK consider adding constraints that are consistant with the gpu partition
     //TODO vgpu initialization with configured size
-    VirtualGPU vgpu((1 << 20) * sizeof(float));
+    VirtualGPU vgpu{(1 << 20) * sizeof(float)};
 
     void initialize(){
         cuDeviceGet(&device, 0);

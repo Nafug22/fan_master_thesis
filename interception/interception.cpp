@@ -21,7 +21,7 @@ void *dlsym(void *handle, const char *symbol) {
   // for CUDA func
   if(strcmp(symbol, STRINGIFY(cuGetProcAddress)) == 0){
     printf("intercepted: %s\n", symbol);
-    return (void *) &getProcAddressBySymbol;
+    // return (void *) &getProcAddressBySymbol;
   }
 
   // for all other func
@@ -54,52 +54,52 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
     return result;  \
   }
 //==================================================================================================================
-// currently no work to do, CUDA will only be initialized on the host
-extern "C" CUresult CUDAAPI cuInit(unsigned int Flags){};
-extern "C" CUresult CUDAAPI cuDeviceGet(CUdevice* device, int ordinal){};
-extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUdevice dev){};
+//currently no work to do, CUDA will only be initialized on the host
+extern "C" CUresult CUDAAPI cuInit(unsigned int Flags){ return CUDA_SUCCESS; };
+extern "C" CUresult CUDAAPI cuDeviceGet(CUdevice* device, int ordinal){ return CUDA_SUCCESS; };
+extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUdevice dev){ return CUDA_SUCCESS; };
 //currently no work to do, context is managed by the host
-extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){};
+extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){ return CUDA_SUCCESS; };
 
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
     static std::vector<std::string> string_args;
-    static std::vector<uint64_t> scalar_args(2, 0);
+    static std::vector<std::uint64_t> scalar_args(2, 0);
 
     scalar_args[1] = bytesize;
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
     *dptr = response.scalar();
     
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
     vgpu.to_device(srcHost, ByteCount);
     static std::vector<std::string> string_args;
-    static std::vector<uint64_t> scalar_args(3, 0);
+    static std::vector<std::uint64_t> scalar_args(3, 0);
 
     scalar_args[0] = dstDevice;
     scalar_args[2] = ByteCount;
 
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
 
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
     static std::vector<std::string> string_args(1);
-    static std::vector<uint64_t> scalar_args;
+    static std::vector<std::uint64_t> scalar_args;
 
     string_args[0] = fname;
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    *cu_module = response.scalar();
+    *cu_module = (CUmodule) response.scalar();
 
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     static std::vector<std::string> string_args;
-    static std::vector<uint64_t> scalar_args(3, 0);
+    static std::vector<std::uint64_t> scalar_args(3, 0);
 
     scalar_args[1] = srcDevice;
     scalar_args[2] = ByteCount;
@@ -107,38 +107,38 @@ extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, s
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
 
     vgpu.from_device(dstHost, ByteCount);
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemFree(CUdeviceptr dptr){
     static std::vector<std::string> string_args;
-    static std::vector<uint64_t> scalar_args(1);
+    static std::vector<std::uint64_t> scalar_args(1);
 
     scalar_args[0] = dptr;
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleUnload(CUmodule hmod){
     static std::vector<std::string> string_args;
-    static std::vector<uint64_t> scalar_args(1);
+    static std::vector<std::uint64_t> scalar_args(1);
 
-    scalar_args[0] = hmod;
+    scalar_args[0] = reinterpret_cast<std::uint64_t>(hmod);
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     static std::vector<std::string> string_args(1);
-    static std::vector<uint64_t> scalar_args(1);
+    static std::vector<std::uint64_t> scalar_args(1);
 
     string_args[0] = name;
-    scalar_args[0] = hmod;
+    scalar_args[0] = reinterpret_cast<std::uint64_t>(hmod);
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    *hfunc = response.scalar();
+    *hfunc = (CUfunction) response.scalar();
     hashfunc[*hfunc] = name;
 
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 //FIXME how to deal with the `extra`? where is it used? =
@@ -148,12 +148,12 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
                                            void** kernelParams, void** extra){
     static std::vector<std::string> string_args;
     //currently, the `extra` is not included
-    std::vector<uint64_t> scalar_args(9);
+    std::vector<std::uint64_t> scalar_args(9);
 
-    scalar_args[0] = f;
+    scalar_args[0] = reinterpret_cast<std::uint64_t>(f);
     scalar_args[1] = gridDimX; scalar_args[2] = gridDimY; scalar_args[3] = gridDimZ;
     scalar_args[4] = blockDimX; scalar_args[5] = blockDimY; scalar_args[6] = blockDimZ;
-    scalar_args[7] = sharedMemBytes; scalar_args[8] = hStream;
+    scalar_args[7] = sharedMemBytes; scalar_args[8] = 0;  //TODO deal with the CUstream
 
     /******************************************
      *    Set parameters for the cuda func    *
@@ -164,14 +164,15 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     printf("the function launched has the name %s, with %d params\n", hashfunc[f].c_str(), param_count);
 
     for(int i = 0; i < param_count; i++){
-        if(param_type[i] == ".u32" scalar_args.push_back(*reinterpret_cast<uint32_t*>(kernelParams[i]));
-        if(param_type[i] == ".u64" scalar_args.push_back(*reinterpret_cast<uint64_t*>(kernelParams[i]));
+        //// if(param_type[i] == ".u32") scalar_args.push_back(*reinterpret_cast<uint32_t*>(kernelParams[i]));
+        //// if(param_type[i] == ".u64") scalar_args.push_back(*reinterpret_cast<uint64_t*>(kernelParams[i]));
+        scalar_args.push_back(*reinterpret_cast<std::uint64_t*>(kernelParams[i]));
     }
     
 
     ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
 
-    return response.curesult();
+    return (CUresult) response.curesult();
 }
 //==================================================================================================================
 // #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \

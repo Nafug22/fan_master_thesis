@@ -4,6 +4,10 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <cstring>
+
+#include <iostream>
+#include <unistd.h>
 
 /*****************************************************************************
  * @class VirtualGPU                                                         *
@@ -15,7 +19,7 @@ class VirtualGPU{
     /**
      * @param memory_size memory size of the virtual gpu
      */
-    explicit VirtualGPU(size_t memory_size) : memory_size_(memory_size){ initialize(); }
+    explicit VirtualGPU(size_t memory_size) : memory_size_(memory_size){ initialize(); };
     ~VirtualGPU(){
         close(shm_fd);
         munmap(vgpu_ptr_, memory_size_ * sizeof(float));
@@ -71,5 +75,5 @@ class VirtualGPU{
           return;
       }
     }
-}
+};
 #endif
