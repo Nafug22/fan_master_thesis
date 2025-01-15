@@ -2,6 +2,8 @@
 #include <memory>
 #include <string>
 
+#include "vgpu.h"
+
 #include "hvcomm.grpc.pb.h"
 
 #include <cuda.h>
@@ -28,25 +30,28 @@ using hvcomm::ResponseMessage;
 class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
   private:
     /**
-     * TODO: - Add initialization
-     *       - refactor into GPU instances
+     * TODO: - refactor into GPU instances
      */
     CUdevice device;
     CUcontext cucontext;
-    CUfunction function;
     std::vector<std::unique_ptr<CUdeviceptr>> device_ptrs_;
     std::vector<std::unique_ptr<CUmodule>> cumodules_;
     std::vector<std::unique_ptr<CUfunction>> cufuncs_;
     //HACK consider adding constraints that are consistant with the gpu partition
-    //TODO add initialization for the vgpu
-    void *vgpu;
+    //TODO vgpu initialization with configured size
+    VirtualGPU vgpu((1 << 20) * sizeof(float));
 
+    void initialize(){
+        cuDeviceGet(&device, 0);
+        cuCtxCreate(&cucontext, 0, device);
+    }
   public:
+    CUDAAPIServiceImpl(){ initialize(); };
     Status CallCudaFunction(ServerContext* context, const RequestMessage* request, ResponseMessage* response) override {
         std::string function_name = request->function_name();
         std::cout << "Received GPU commands: " << function_name << std::endl;
-        std::vector<std::string> string_parameters(request->string_parameters.begin(), request->string_parameters.end());
-        std::vector<uint64_t> scalar_parameters(request->scalar_parameters.begin(), request->scalar_parameters.end());
+        std::vector<std::string> string_parameters(request->string_parameters().begin(), request->string_parameters().end());
+        std::vector<uint64_t> scalar_parameters(request->scalar_parameters().begin(), request->scalar_parameters().end());
         
 
         //TODO client name should be used in the future
@@ -63,7 +68,7 @@ class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
             size_t size = scalar_parameters[1];
             device_ptrs_.push_back(std::make_unique<CUdeviceptr>());
 
-            CUresult result = cuMemAlloc(device_ptrs_.back(), size);
+            CUresult result = cuMemAlloc(device_ptrs_.back().get(), size);
 
             response->set_scalar(*device_ptrs_.back());
             response->set_curesult(result);
@@ -73,7 +78,7 @@ class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
         if(function_name == "cuMemcpyHtoD"){
             size_t size = scalar_parameters[2];
 
-            CUresult result = cuMemcpyHtoD(scalar_parameters[0], vgpu, size);
+            CUresult result = cuMemcpyHtoD(scalar_parameters[0], vgpu.vgpu_ptr_, size);
 
             response->set_curesult(result);
         }
@@ -81,30 +86,30 @@ class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
         //HACK consider access control in multi-client case
         if(function_name == "cuModuleLoad"){
             cumodules_.push_back(std::make_unique<CUmodule>());
-            CUresult result = cuModuleLoad(cumodules_.back(), parameters[0]);
+            CUresult result = cuModuleLoad(cumodules_.back().get(), string_parameters[0].c_str());
 
-            response->set_scalar(*cumodules_.back());
+            response->set_scalar((uint64_t) *cumodules_.back());
             response->set_curesult(result);
         }
 
         //HACK consider access control in multi-client case
         if(function_name == "cuModuleGetFunction"){
             cufuncs_.push_back(std::make_unique<CUfunction>());
-            CUresult result = cuModuleGetFunction(cufuncs_.back(), scalar_parameters[0], string_parameters[0]);
+            CUresult result = cuModuleGetFunction(cufuncs_.back().get(), (CUmodule) scalar_parameters[0], string_parameters[0].c_str());
 
-            response->set_scalar(*cufuncs_.back());
+            response->set_scalar((uint64_t) *cufuncs_.back());
             response->set_curesult(result);
         }
 
         if(function_name == "cuLaunchKernel"){
-            void *args[parameters.size() - 9];
+            void *args[scalar_parameters.size() - 9];
             for(int i = 9; i < scalar_parameters.size(); i++){
                 args[i - 9] = &scalar_parameters[i];
             }
-            CUresult result = cuLaunchKernel(scalar_parameters[0],
+            CUresult result = cuLaunchKernel((CUfunction) scalar_parameters[0],
                                              scalar_parameters[1], scalar_parameters[2], scalar_parameters[3],
                                              scalar_parameters[4], scalar_parameters[5], scalar_parameters[6],
-                                             scalar_parameters[7], scalar_parameters[8],
+                                             scalar_parameters[7], (CUstream) scalar_parameters[8],
                                              args, nullptr);
 
             response->set_curesult(result);
@@ -112,7 +117,7 @@ class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
 
         //HACK consider controlled access pattern
         if(function_name == "cuMemcpyDtoH"){
-            CUresult result = cuMemcpyDtoH(vgpu, scalar_parameters[1], scalar_parameters[2]);
+            CUresult result = cuMemcpyDtoH(vgpu.vgpu_ptr_, scalar_parameters[1], scalar_parameters[2]);
             response->set_curesult(result);
         }
 
@@ -122,7 +127,7 @@ class CUDAAPIServiceImpl final : public CUDAAPIService::Service {
         }
 
         if(function_name == "cuModuleUnload"){
-            CUresult result = cuModuleUnload(scalar_parameters[0]);
+            CUresult result = cuModuleUnload((CUmodule) scalar_parameters[0]);
             response->set_curesult(result);
         }
 
