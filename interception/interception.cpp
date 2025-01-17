@@ -49,7 +49,6 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
     using symbol##handler = CUresult CUDAAPI (params);  \
     static auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
     printf("Intercepted: %s\n", STRINGIFY(symbol)); \
-    //// client.CallCudaFunction(STRINGIFY(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
   }
@@ -67,10 +66,10 @@ extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
     static std::vector<std::uint64_t> scalar_args(2, 0);
 
     scalar_args[1] = bytesize;
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    *dptr = response.scalar();
+    client.CallCudaFunction(__func__, string_args, scalar_args);
+    *dptr = client.get_scalar_result();
     
-    return (CUresult) response.curesult();
+    return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
@@ -81,9 +80,9 @@ extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcH
     scalar_args[0] = dstDevice;
     scalar_args[2] = ByteCount;
 
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
+    client.CallCudaFunction(__func__, string_args, scalar_args);
 
-    return (CUresult) response.curesult();
+    return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
@@ -91,10 +90,10 @@ extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname)
     static std::vector<std::uint64_t> scalar_args;
 
     string_args[0] = fname;
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    *cu_module = (CUmodule) response.scalar();
+    client.CallCudaFunction(__func__, string_args, scalar_args);
+    *cu_module = (CUmodule) client.get_scalar_result();
 
-    return (CUresult) response.curesult();
+    return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
@@ -104,19 +103,19 @@ extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, s
     scalar_args[1] = srcDevice;
     scalar_args[2] = ByteCount;
 
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
+    client.CallCudaFunction(__func__, string_args, scalar_args);
 
     vgpu.from_device(dstHost, ByteCount);
-    return (CUresult) response.curesult();
+    return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemFree(CUdeviceptr dptr){
     static std::vector<std::string> string_args;
-    static std::vector<std::uint64_t> scalar_args(1);
+    static std::vector<std::uint64_t> scalar_args(1, 0);
 
     scalar_args[0] = dptr;
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    return (CUresult) response.curesult();
+    client.CallCudaFunction(__func__, string_args, scalar_args);
+    return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleUnload(CUmodule hmod){
@@ -124,21 +123,22 @@ extern "C" CUresult CUDAAPI cuModuleUnload(CUmodule hmod){
     static std::vector<std::uint64_t> scalar_args(1);
 
     scalar_args[0] = reinterpret_cast<std::uint64_t>(hmod);
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    return (CUresult) response.curesult();
+    client.CallCudaFunction(__func__, string_args, scalar_args);
+    return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     static std::vector<std::string> string_args(1);
-    static std::vector<std::uint64_t> scalar_args(1);
+    static std::vector<std::uint64_t> scalar_args(2, 0);
 
     string_args[0] = name;
-    scalar_args[0] = reinterpret_cast<std::uint64_t>(hmod);
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
-    *hfunc = (CUfunction) response.scalar();
+    scalar_args[0] = 0;
+    scalar_args[1] = reinterpret_cast<std::uint64_t>(hmod);
+    client.CallCudaFunction(__func__, string_args, scalar_args);
+    *hfunc = (CUfunction) client.get_scalar_result();
     hashfunc[*hfunc] = name;
 
-    return (CUresult) response.curesult();
+    return client.get_curesult();
 }
 //==================================================================================================================
 //FIXME how to deal with the `extra`? where is it used? =
@@ -148,12 +148,13 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
                                            void** kernelParams, void** extra){
     static std::vector<std::string> string_args;
     //currently, the `extra` is not included
-    std::vector<std::uint64_t> scalar_args(9);
+    //TODO consider to refactor into the [] overload version
+    std::vector<std::uint64_t> scalar_args(9, 0);
 
     scalar_args[0] = reinterpret_cast<std::uint64_t>(f);
     scalar_args[1] = gridDimX; scalar_args[2] = gridDimY; scalar_args[3] = gridDimZ;
     scalar_args[4] = blockDimX; scalar_args[5] = blockDimY; scalar_args[6] = blockDimZ;
-    scalar_args[7] = sharedMemBytes; scalar_args[8] = 0;  //TODO deal with the CUstream
+    scalar_args[7] = sharedMemBytes; scalar_args[8] = reinterpret_cast<uint64_t>(hStream);
 
     /******************************************
      *    Set parameters for the cuda func    *
@@ -161,18 +162,18 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     if(!hashfunc.count(f)) std::cout << "cuFunc " << f << " not found!\n" << std::endl;
     std::vector<std::string> &param_type = func_proto.get_params(hashfunc[f]);
     int param_count = param_type.size();
-    printf("the function launched has the name %s, with %d params\n", hashfunc[f].c_str(), param_count);
 
     for(int i = 0; i < param_count; i++){
+        //TODO temp impl to be updated
         //// if(param_type[i] == ".u32") scalar_args.push_back(*reinterpret_cast<uint32_t*>(kernelParams[i]));
         //// if(param_type[i] == ".u64") scalar_args.push_back(*reinterpret_cast<uint64_t*>(kernelParams[i]));
         scalar_args.push_back(*reinterpret_cast<std::uint64_t*>(kernelParams[i]));
     }
     
 
-    ResponseMessage &response = client.CallCudaFunction(__func__, string_args, scalar_args);
+    client.CallCudaFunction(__func__, string_args, scalar_args);
 
-    return (CUresult) response.curesult();
+    return client.get_curesult();
 }
 //==================================================================================================================
 // #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
