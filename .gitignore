@@ -1,9 +1,7 @@
 *.so
-*.txt
-
 
 grpc_generated/
 build/
+Testing/
 logs/
-test/
 .vscode/

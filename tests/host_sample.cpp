@@ -35,7 +35,7 @@ int main() {
 
     // Load module and kernel
     CUmodule module;
-    CUDA_CHECK(cuModuleLoad(&module, "vector_add.ptx"));
+    CUDA_CHECK(cuModuleLoad(&module, "/home/ubuntu/fan_thesis/fan_master_thesis/vector_add.ptx"));
     CUfunction vectorAdd;
     CUDA_CHECK(cuModuleGetFunction(&vectorAdd, module, "vectorAdd"));
 
