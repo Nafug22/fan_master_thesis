@@ -4,7 +4,7 @@ project(FineVGPU)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(BUILD_DIR {CMAKE_SOURCE_DIR}/build)
+set(BUILD_DIR ${CMAKE_SOURCE_DIR}/build CACHE INTERNAL "")
 set(CUDA_HOME /usr/local/cuda)
 include_directories(${CUDA_HOME}/include)
 
