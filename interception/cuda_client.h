@@ -24,6 +24,10 @@ class CUDAClient{
       if(!string_arg.empty()) string_args_.set(string_arg[0]);
       command_buffer_.push(func_name);
     }
+    void CallCudaFunction(const char* func_name){
+      command_buffer_.push(func_name);
+    }
+    void* get_args_ptr() { return cuda_args_.get_ptr(); };
 
     uint64_t get_scalar_result() { return command_buffer_.get_scalar_result(); };
     CUresult get_curesult() { return command_buffer_.get_curesult(); };
@@ -31,6 +35,7 @@ class CUDAClient{
     ScalarArgs scalar_args_{};
     StringArg string_args_{STRING_ARG_PORT};
     CommandBuffer command_buffer_{};
+    CUDAArgs cuda_args_{};
 };
 
 #endif

@@ -11,6 +11,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "type_decl.h"
+
 extern "C" {
 void *__libc_dlsym(void *map, const char *name);
 void *__libc_dlopen_mode(const char *name, int mode);

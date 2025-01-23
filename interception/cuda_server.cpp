@@ -1,18 +1,16 @@
 #include <cstdio>
 #include <stdio.h>
-#include <semaphore.h>
 #include <cstring>
 #include <memory>
-#include <sys/shm.h>
-#include <sys/ipc.h>
 #include <csignal>
+#include <unordered_map>
+#include <functional>
 #include <cuda.h>
 
 #include "shared_memory_manager.h"
+#include "type_decl.h"
 
-#define SEM_NAME "/command_sem"
-#define SHM_NAME "command.txt"
-
+std::unordered_map<std::string, std::function<void()>> func_map;
 class CUDAServer{
   public:
     CUDAServer(){ initialize(); };
@@ -28,6 +26,7 @@ class CUDAServer{
     CommandBuffer command_buffer_{};
     ScalarArgs scalar_args_{};
     StringArg string_arg_{STRING_ARG_PORT};
+    CUDAArgs cuda_args_{};
     //TODO consider to refactor into the [] overload version
     std::string string_content_;
     std::vector<std::unique_ptr<CUdeviceptr>> device_ptrs_;
@@ -78,7 +77,9 @@ class CUDAServer{
           size_t size = scalar_args_[1];
           device_ptrs_.push_back(std::make_unique<CUdeviceptr>());
 
-          CUresult result = cuMemAlloc(device_ptrs_.back().get(), size);
+          CUresult result = std::apply(cuMemAlloc,
+                                       std::forward_as_tuple(device_ptrs_.back().get(), size));
+          // CUresult result = cuMemAlloc(device_ptrs_.back().get(), size);
           std::cout << "Allocating device memory " << *device_ptrs_.back() << std::endl;
           command_buffer_.set_scalar_result(*device_ptrs_.back());
           command_buffer_.set_curesult(result);
@@ -87,9 +88,10 @@ class CUDAServer{
       //HACK consider controled access pattern
       if(function_fit(function_name, "cuMemcpyHtoD") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
-          size_t size = scalar_args_[2];
 
-          CUresult result = cuMemcpyHtoD(scalar_args_[0], vgpu.get(), size);
+          cuMemcpyHtoD_param_t &args = *(cuMemcpyHtoD_param_t*)(cuda_args_.get_ptr());
+          std::get<1>(args) = vgpu.get();
+          CUresult result = std::apply(cuMemcpyHtoD, args);
 
           command_buffer_.set_curesult(result);
       }
@@ -127,7 +129,6 @@ class CUDAServer{
                                             scalar_args_[7], (CUstream) scalar_args_[8],
                                             kernel_args, nullptr);
 
-          // CUresult result = CUDA_SUCCESS;
           command_buffer_.set_curesult(result);
       }
 
@@ -178,3 +179,17 @@ int main(){
 
   return 0;
 }
+
+/* generate the corresponding cuda function with arguments stored in shared memory. */
+#define CUDA_API_IMPL(symbol) \
+void call_##symbol(){ \
+  std::cout << "<<<<<<<<<<implemented as " << #symbol << std::endl; \
+  symbol##_param_t &client_args = *(symbol##_param_t*)(cuda_args_.get_ptr()); \
+  CUresult result = std::apply(symbol, client_args); \
+  command_buffer.set_curesult(result); \
+}
+
+/* register a function into the function map for better performance. */
+#define CUDA_REGISTER(symbol) \
+  CUDA_API_IMPL(symbol) \
+  func_map[#symbol] = call_##symbol;

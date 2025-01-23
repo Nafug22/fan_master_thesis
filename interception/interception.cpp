@@ -73,14 +73,10 @@ extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
+    cuMemcpyHtoD_param_t args(dstDevice, vgpu.get(), ByteCount);
+    memcpy(client.get_args_ptr(), &args, sizeof(cuMemcpyHtoD_param_t));
     vgpu.to_device(srcHost, ByteCount);
-    static std::vector<std::string> string_args;
-    static std::vector<std::uint64_t> scalar_args(3, 0);
-
-    scalar_args[0] = dstDevice;
-    scalar_args[2] = ByteCount;
-
-    client.CallCudaFunction(__func__, string_args, scalar_args);
+    client.CallCudaFunction(__func__);
 
     return client.get_curesult();
 }

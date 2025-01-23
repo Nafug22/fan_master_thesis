@@ -16,6 +16,7 @@
 #define COMMAND_PORT 3
 #define RESPONSE_PORT 4
 #define SCALAR_ARG_PORT 5
+#define CUDA_ARG_PORT 6
 
 /**
  * @class SharedMemoryManager
@@ -44,6 +45,21 @@ class SharedMemoryManager{
 
   private:
     int shm_id;
+};
+
+class CUDAArgs : public SharedMemoryManager{
+  public:
+    CUDAArgs() : SharedMemoryManager(CUDA_ARG_PORT, sizeof(size_t) + sizeof(uint64_t) * 100),
+                 size_ptr_(static_cast<size_t*>(shm_addrs_)),
+                 args_(reinterpret_cast<void*>(size_ptr_ + 1)){};
+    ~CUDAArgs(){};
+
+    size_t get_size() {return *size_ptr_; };
+    void* get_ptr() {return args_; };
+
+  private:
+    size_t *size_ptr_;
+    void *args_;
 };
 
 /**
