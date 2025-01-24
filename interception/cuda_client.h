@@ -27,6 +27,10 @@ class CUDAClient{
     void CallCudaFunction(const char* func_name){
       command_buffer_.push(func_name);
     }
+    CUresult CallCudaFunction(const char* func_name){
+      command_buffer_.push(func_name);
+      return get_curesult();
+    }
     void* get_args_ptr() { return cuda_args_.get_ptr(); };
 
     uint64_t get_scalar_result() { return command_buffer_.get_scalar_result(); };

@@ -10,7 +10,13 @@
 #include "shared_memory_manager.h"
 #include "type_decl.h"
 
-std::unordered_map<std::string, std::function<void()>> func_map;
+static std::unordered_map<std::string, std::function<void()>> func_map;
+#define REGISTER_CU_FUNC(symbol)  \
+  func_map[SYMBOL_TO_STR(symbol)] = symbol;
+
+//TODO how to make the initialization happen only once?
+REGISTER_CU_FUNC(cuModuleUnload)
+
 class CUDAServer{
   public:
     CUDAServer(){ initialize(); };
@@ -145,17 +151,25 @@ class CUDAServer{
           command_buffer_.set_curesult(result);
       }
 
-      if(function_fit(function_name, "cuModuleUnload") == 0){
-          std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
-          CUresult result = cuModuleUnload((CUmodule) scalar_args_[0]);
-          command_buffer_.set_curesult(result);
-      }
-
+      if(func_map.count(function_name)) call_function(func_map[function_name]);
+      // if(function_fit(function_name, "cuModuleUnload") == 0){
+      //     std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+      //     CUresult result = cuModuleUnload((CUmodule) scalar_args_[0]);
+      //     command_buffer_.set_curesult(result);
+      // }
       // // if(function_name == "cuCtxDestroy"){
       // //     cuCtxDestroy(cucontext);
       // // }
 
       command_buffer_.impl_finish();
+    }
+
+    /* generic implementation for remoted API functions. */
+    template <typename F>
+    void call_function(F f){
+        using function_traits = FunctionTraits<std::decay_t<F>>;
+        CUresult result = std::apply(symbol, *(function_traits::ParameterTuple*)(cuda_args_.get_ptr()));
+        command_buffer.set_curesult(result);
     }
 };
 
@@ -179,17 +193,3 @@ int main(){
 
   return 0;
 }
-
-/* generate the corresponding cuda function with arguments stored in shared memory. */
-#define CUDA_API_IMPL(symbol) \
-void call_##symbol(){ \
-  std::cout << "<<<<<<<<<<implemented as " << #symbol << std::endl; \
-  symbol##_param_t &client_args = *(symbol##_param_t*)(cuda_args_.get_ptr()); \
-  CUresult result = std::apply(symbol, client_args); \
-  command_buffer.set_curesult(result); \
-}
-
-/* register a function into the function map for better performance. */
-#define CUDA_REGISTER(symbol) \
-  CUDA_API_IMPL(symbol) \
-  func_map[#symbol] = call_##symbol;

@@ -5,6 +5,9 @@
 #include <type_traits>
 #include <cuda.h>
 
+#define SYMBOL_TO_STR(x) STRINGIFY(x)
+#define STRINGIFY(x) #x
+
 template<typename T>
 struct FunctionTraits;
 

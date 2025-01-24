@@ -3,8 +3,6 @@
 #include <cstring>
 #include <unordered_map>
 
-#define STRINGIFY(x) #x
-
 VirtualGPU vgpu((1 << 20) * sizeof(float));
 
 //==================================================================================================================
@@ -19,7 +17,7 @@ static void *real_dlsym(void *handle, const char *symbol) {
 /* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
 void *dlsym(void *handle, const char *symbol) {
   // for CUDA func
-  if(strcmp(symbol, STRINGIFY(cuGetProcAddress)) == 0){
+  if(strcmp(symbol, SYMBOL_TO_STR(cuGetProcAddress)) == 0){
     printf("intercepted: %s\n", symbol);
     // return (void *) &getProcAddressBySymbol;
   }
@@ -47,10 +45,19 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params {   \
     using symbol##handler = CUresult CUDAAPI (params);  \
-    static auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, STRINGIFY(symbol)); \
-    printf("Intercepted: %s\n", STRINGIFY(symbol)); \
+    static auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, SYMBOL_TO_STR(symbol)); \
+    printf("Intercepted: %s\n", SYMBOL_TO_STR(symbol)); \
     CUresult result = real_func(__VA_ARGS__); \
     return result;  \
+  }
+//==================================================================================================================
+/* Macro used to intercept and then generate corresponding remoting API for CUDA driver functions. */
+#define CU_HOOK_REMOTE(symbol, params, ...) \
+  extern "C" CUresult CUDAAPI symbol params{  \
+    using param_t = FunctionTraits<std::decay_t<symbol>>::ParameterTuple; \
+    param_t args(__VA_ARGS__);  \
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));  \
+    return client.CallCudaFunction(__func__); \
   }
 //==================================================================================================================
 //currently no work to do, CUDA will only be initialized on the host
@@ -114,14 +121,15 @@ extern "C" CUresult CUDAAPI cuMemFree(CUdeviceptr dptr){
     return client.get_curesult();
 }
 //==================================================================================================================
-extern "C" CUresult CUDAAPI cuModuleUnload(CUmodule hmod){
-    static std::vector<std::string> string_args;
-    static std::vector<std::uint64_t> scalar_args(1);
-
-    scalar_args[0] = reinterpret_cast<std::uint64_t>(hmod);
-    client.CallCudaFunction(__func__, string_args, scalar_args);
-    return client.get_curesult();
-}
+// extern "C" CUresult CUDAAPI cuModuleUnload(CUmodule hmod){
+//     cuModuleUnload_param_t args(hmod);
+//     memcpy(client.get_args_ptr(), &args, sizeof(cuMemcpyHtoD_param_t));
+//     client.CallCudaFunction(__func__);
+//     return client.get_curesult();
+// }
+CU_HOOK_REMOTE(cuModuleUnload,
+              (CUmodule hmod),
+              hmod)
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     static std::vector<std::string> string_args(1);
