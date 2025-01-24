@@ -4,18 +4,24 @@
 #include <memory>
 #include <csignal>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include <cuda.h>
 
 #include "shared_memory_manager.h"
 #include "type_decl.h"
 
-static std::unordered_map<std::string, std::function<void()>> func_map;
-#define REGISTER_CU_FUNC(symbol)  \
-  func_map[SYMBOL_TO_STR(symbol)] = symbol;
+#define ADD_SYMBOL(symbol) {SYMBOL_TO_STR(symbol), [this]() { this->call_##symbol(); }}
 
-//TODO how to make the initialization happen only once?
-REGISTER_CU_FUNC(cuModuleUnload)
+/* generate the corresponding cuda function with arguments stored in shared memory. */
+#define CUDA_API_IMPL(symbol) \
+void call_##symbol(){ \
+  std::cout << "<<<<<<<<<<implemented as " << #symbol << std::endl; \
+  using param_t = FunctionTraits<decltype(symbol)>::ParameterTuple;  \
+  param_t &args = *(param_t*)(cuda_args_.get_ptr());         \
+  CUresult result = std::apply(symbol, args);                \
+  command_buffer_.set_curesult(result);                              \
+}
 
 class CUDAServer{
   public:
@@ -151,12 +157,7 @@ class CUDAServer{
           command_buffer_.set_curesult(result);
       }
 
-      if(func_map.count(function_name)) call_function(func_map[function_name]);
-      // if(function_fit(function_name, "cuModuleUnload") == 0){
-      //     std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
-      //     CUresult result = cuModuleUnload((CUmodule) scalar_args_[0]);
-      //     command_buffer_.set_curesult(result);
-      // }
+      if(func_map.count(function_name)) func_map[function_name]();
       // // if(function_name == "cuCtxDestroy"){
       // //     cuCtxDestroy(cucontext);
       // // }
@@ -164,13 +165,24 @@ class CUDAServer{
       command_buffer_.impl_finish();
     }
 
-    /* generic implementation for remoted API functions. */
-    template <typename F>
-    void call_function(F f){
-        using function_traits = FunctionTraits<std::decay_t<F>>;
-        CUresult result = std::apply(symbol, *(function_traits::ParameterTuple*)(cuda_args_.get_ptr()));
-        command_buffer.set_curesult(result);
-    }
+    /* deprecated: hard to find a unified way to store the func_map. */
+    // /* generic implementation for remoted API functions. */
+    // template <typename F>
+    // void call_function(){};
+
+    // template <typename R, typename... Args>
+    // void call_function<R(Args...)>(){
+    //     using param_t = std::tuple<Args...>;
+    //     CUresult result = std::apply(f, *(param_t*)(cuda_args_.get_ptr()));
+    //     command_buffer_.set_curesult(result);
+    // }
+
+    CUDA_API_IMPL(cuModuleUnload)
+
+  private:
+    std::unordered_map<std::string, std::function<void()>> func_map = {
+      ADD_SYMBOL(cuModuleUnload)
+    };
 };
 
 CUDAServer *server;

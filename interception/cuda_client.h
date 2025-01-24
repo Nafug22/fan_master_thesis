@@ -27,7 +27,7 @@ class CUDAClient{
     void CallCudaFunction(const char* func_name){
       command_buffer_.push(func_name);
     }
-    CUresult CallCudaFunction(const char* func_name){
+    CUresult CallCudaFunction_v2(const char* func_name){
       command_buffer_.push(func_name);
       return get_curesult();
     }
