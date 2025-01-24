@@ -66,7 +66,6 @@ extern "C" CUresult CUDAAPI cuDeviceGet(CUdevice* device, int ordinal){ return C
 extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUdevice dev){ return CUDA_SUCCESS; };
 //currently no work to do, context is managed by the host
 extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){ return CUDA_SUCCESS; };
-
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
     static std::vector<std::string> string_args;
@@ -111,19 +110,6 @@ extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, s
     vgpu.from_device(dstHost, ByteCount);
     return client.get_curesult();
 }
-//==================================================================================================================
-extern "C" CUresult CUDAAPI cuMemFree(CUdeviceptr dptr){
-    static std::vector<std::string> string_args;
-    static std::vector<std::uint64_t> scalar_args(1, 0);
-
-    scalar_args[0] = dptr;
-    client.CallCudaFunction(__func__, string_args, scalar_args);
-    return client.get_curesult();
-}
-//==================================================================================================================
-CU_HOOK_REMOTE(cuModuleUnload,
-              (CUmodule hmod),
-              hmod)
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     static std::vector<std::string> string_args(1);
@@ -173,6 +159,9 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
 
     return client.get_curesult();
 }
+//==================================================================================================================
+CU_HOOK_REMOTE(cuMemFree, (CUdeviceptr dptr), dptr)
+CU_HOOK_REMOTE(cuModuleUnload, (CUmodule hmod), hmod)
 //==================================================================================================================
 // #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
 //   extern "C" CUresult CUDAAPI symbol params {   \

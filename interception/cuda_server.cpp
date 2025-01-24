@@ -151,12 +151,6 @@ class CUDAServer{
           command_buffer_.set_curesult(result);
       }
 
-      if(function_fit(function_name, "cuMemFree") == 0){
-          std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
-          CUresult result = cuMemFree(scalar_args_[0]);
-          command_buffer_.set_curesult(result);
-      }
-
       if(func_map.count(function_name)) func_map[function_name]();
       // // if(function_name == "cuCtxDestroy"){
       // //     cuCtxDestroy(cucontext);
@@ -177,10 +171,12 @@ class CUDAServer{
     //     command_buffer_.set_curesult(result);
     // }
 
+    CUDA_API_IMPL(cuMemFree)
     CUDA_API_IMPL(cuModuleUnload)
 
   private:
     std::unordered_map<std::string, std::function<void()>> func_map = {
+      ADD_SYMBOL(cuMemFree),
       ADD_SYMBOL(cuModuleUnload)
     };
 };
