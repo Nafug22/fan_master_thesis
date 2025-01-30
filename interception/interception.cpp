@@ -57,7 +57,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
     using param_t = FunctionTraits<decltype(symbol)>::ParameterTuple; \
     param_t args(__VA_ARGS__);  \
     memcpy(client.get_args_ptr(), &args, sizeof(param_t));  \
-    return client.CallCudaFunction_v2(__func__); \
+    return client.CallCudaFunction(__func__); \
   }
 //==================================================================================================================
 //currently no work to do, CUDA will only be initialized on the host
@@ -68,19 +68,19 @@ extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUd
 extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){ return CUDA_SUCCESS; };
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
-    static std::vector<std::string> string_args;
-    static std::vector<std::uint64_t> scalar_args(2, 0);
-
-    scalar_args[1] = bytesize;
-    client.CallCudaFunction(__func__, string_args, scalar_args);
+    using param_t = FunctionTraits<decltype(cuMemAlloc)>::ParameterTuple;
+    param_t args(dptr, bytesize);
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
+    client.CallCudaFunction(__func__);
     *dptr = client.get_scalar_result();
-    
+
     return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
-    cuMemcpyHtoD_param_t args(dstDevice, vgpu.get(), ByteCount);
-    memcpy(client.get_args_ptr(), &args, sizeof(cuMemcpyHtoD_param_t));
+    using param_t = FunctionTraits<decltype(cuMemcpyHtoD)>::ParameterTuple;
+    param_t args(dstDevice, srcHost, ByteCount);
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
     vgpu.to_device(srcHost, ByteCount);
     client.CallCudaFunction(__func__);
 
@@ -88,37 +88,32 @@ extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcH
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
-    static std::vector<std::string> string_args(1);
-    static std::vector<std::uint64_t> scalar_args;
-
-    string_args[0] = fname;
-    client.CallCudaFunction(__func__, string_args, scalar_args);
+    using param_t = FunctionTraits<decltype(cuModuleLoad)>::ParameterTuple;
+    param_t args(cu_module, fname);
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
+    client.set_string_args(fname);
+    client.CallCudaFunction(__func__);
     *cu_module = (CUmodule) client.get_scalar_result();
 
     return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
-    static std::vector<std::string> string_args;
-    static std::vector<std::uint64_t> scalar_args(3, 0);
-
-    scalar_args[1] = srcDevice;
-    scalar_args[2] = ByteCount;
-
-    client.CallCudaFunction(__func__, string_args, scalar_args);
+    using param_t = FunctionTraits<decltype(cuMemcpyDtoH)>::ParameterTuple;
+    param_t args(dstHost, srcDevice, ByteCount);
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
+    client.CallCudaFunction(__func__);
 
     vgpu.from_device(dstHost, ByteCount);
     return client.get_curesult();
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
-    static std::vector<std::string> string_args(1);
-    static std::vector<std::uint64_t> scalar_args(2, 0);
-
-    string_args[0] = name;
-    scalar_args[0] = 0;
-    scalar_args[1] = reinterpret_cast<std::uint64_t>(hmod);
-    client.CallCudaFunction(__func__, string_args, scalar_args);
+    using param_t = FunctionTraits<decltype(cuModuleGetFunction)>::ParameterTuple;
+    param_t args(hfunc, hmod, name);
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
+    client.set_string_args(name);
+    client.CallCudaFunction(__func__);
     *hfunc = (CUfunction) client.get_scalar_result();
     hashfunc[*hfunc] = name;
 
@@ -130,16 +125,6 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
                                            unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
                                            unsigned int sharedMemBytes, CUstream hStream,
                                            void** kernelParams, void** extra){
-    static std::vector<std::string> string_args;
-    //currently, the `extra` is not included
-    //TODO consider to refactor into the [] overload version
-    std::vector<std::uint64_t> scalar_args(9, 0);
-
-    scalar_args[0] = reinterpret_cast<std::uint64_t>(f);
-    scalar_args[1] = gridDimX; scalar_args[2] = gridDimY; scalar_args[3] = gridDimZ;
-    scalar_args[4] = blockDimX; scalar_args[5] = blockDimY; scalar_args[6] = blockDimZ;
-    scalar_args[7] = sharedMemBytes; scalar_args[8] = reinterpret_cast<uint64_t>(hStream);
-
     /******************************************
      *    Set parameters for the cuda func    *
      ******************************************/
@@ -147,17 +132,23 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     std::vector<std::string> &param_type = func_proto.get_params(hashfunc[f]);
     int param_count = param_type.size();
 
+    std::vector<std::uint64_t> scalar_args(param_count, 0);
     for(int i = 0; i < param_count; i++){
         //TODO temp impl to be updated
         //// if(param_type[i] == ".u32") scalar_args.push_back(*reinterpret_cast<uint32_t*>(kernelParams[i]));
         //// if(param_type[i] == ".u64") scalar_args.push_back(*reinterpret_cast<uint64_t*>(kernelParams[i]));
-        scalar_args.push_back(*reinterpret_cast<std::uint64_t*>(kernelParams[i]));
+        scalar_args[i] = *reinterpret_cast<std::uint64_t*>(kernelParams[i]);
     }
-    
 
-    client.CallCudaFunction(__func__, string_args, scalar_args);
+    client.set_scalar_args(scalar_args);
+    using param_t = FunctionTraits<decltype(cuLaunchKernel)>::ParameterTuple;
+    param_t args(f, gridDimX, gridDimY, gridDimZ,
+                blockDimX, blockDimY, blockDimZ,
+                sharedMemBytes, hStream, kernelParams, extra);
+    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
+    CUresult result = client.CallCudaFunction(__func__);
 
-    return client.get_curesult();
+    return result;
 }
 //==================================================================================================================
 CU_HOOK_REMOTE(cuMemFree, (CUdeviceptr dptr), dptr)

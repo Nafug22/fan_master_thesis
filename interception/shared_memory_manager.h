@@ -64,8 +64,7 @@ class CUDAArgs : public SharedMemoryManager{
 
 /**
  * @class ScalarArg
- * @brief Stores scalar arguments of a cuda command in `uint64_t`, starting with
- *        an extra leading value to denoting the number of argements transferred.
+ * @brief Stores the kernel arguments when launching cuda functions.
  */
 class ScalarArgs : public SharedMemoryManager{
   public:
@@ -119,10 +118,10 @@ class StringArg : public SharedMemoryManager{
                         arg(reinterpret_cast<char*>(size_ptr_ + 1)){};
     ~StringArg(){};
 
-    std::string get() { return std::string(arg, *size_ptr_); };
-    void set(std::string content) {
-      *size_ptr_ = content.size();
-      strncpy(arg, content.c_str(), *size_ptr_);
+    const char* get() { return arg; };
+    void set(const char* content) {
+      *size_ptr_ = std::strlen(content) + 1;
+      strncpy(arg, content, *size_ptr_);
     }
 
   private:
@@ -181,7 +180,7 @@ class CommandBuffer : private StringArg{
     ~CommandBuffer(){ release(); };
 
     /* used by the client to push commands to the buffer with synchronization. */
-    void push(std::string command_name){
+    void push(const char* command_name){
       set(command_name);
       sem_post(sem_host_trigger_);
       sem_wait(sem_guest_trigger_);

@@ -86,13 +86,13 @@ class CUDAServer{
 
       if(function_fit(function_name, "cuMemAlloc") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
-          size_t size = scalar_args_[1];
-          device_ptrs_.push_back(std::make_unique<CUdeviceptr>());
 
-          CUresult result = std::apply(cuMemAlloc,
-                                       std::forward_as_tuple(device_ptrs_.back().get(), size));
-          // CUresult result = cuMemAlloc(device_ptrs_.back().get(), size);
-          std::cout << "Allocating device memory " << *device_ptrs_.back() << std::endl;
+          using param_t = FunctionTraits<decltype(cuMemAlloc)>::ParameterTuple;
+          param_t &args = *(param_t*)(cuda_args_.get_ptr());
+          device_ptrs_.push_back(std::make_unique<CUdeviceptr>());
+          std::get<0>(args) = device_ptrs_.back().get();
+          CUresult result = std::apply(cuMemAlloc, args);
+
           command_buffer_.set_scalar_result(*device_ptrs_.back());
           command_buffer_.set_curesult(result);
       }
@@ -101,7 +101,8 @@ class CUDAServer{
       if(function_fit(function_name, "cuMemcpyHtoD") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
 
-          cuMemcpyHtoD_param_t &args = *(cuMemcpyHtoD_param_t*)(cuda_args_.get_ptr());
+          using param_t = FunctionTraits<decltype(cuMemcpyHtoD)>::ParameterTuple;
+          param_t &args = *(param_t*)(cuda_args_.get_ptr());
           std::get<1>(args) = vgpu.get();
           CUresult result = std::apply(cuMemcpyHtoD, args);
 
@@ -111,8 +112,13 @@ class CUDAServer{
       //HACK consider access control in multi-client case
       if(function_fit(function_name, "cuModuleLoad") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+
+          using param_t = FunctionTraits<decltype(cuModuleLoad)>::ParameterTuple;
+          param_t &args = *(param_t*)(cuda_args_.get_ptr());
           cumodules_.push_back(std::make_unique<CUmodule>());
-          CUresult result = cuModuleLoad(cumodules_.back().get(), string_content_.c_str());
+          std::get<0>(args) = cumodules_.back().get();
+          std::get<1>(args) = string_arg_.get();
+          CUresult result = std::apply(cuModuleLoad, args);
 
           command_buffer_.set_scalar_result((uint64_t) *cumodules_.back());
           command_buffer_.set_curesult(result);
@@ -121,25 +127,30 @@ class CUDAServer{
       //HACK consider access control in multi-client case
       if(function_fit(function_name, "cuModuleGetFunction") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+
+          using param_t = FunctionTraits<decltype(cuModuleGetFunction)>::ParameterTuple;
+          param_t &args = *(param_t*)(cuda_args_.get_ptr());
           cufuncs_.push_back(std::make_unique<CUfunction>());
-          CUresult result = cuModuleGetFunction(cufuncs_.back().get(), (CUmodule) scalar_args_[1], string_content_.c_str());
+          std::get<0>(args) = cufuncs_.back().get();
+          std::get<2>(args) = string_arg_.get();
+          CUresult result = std::apply(cuModuleGetFunction, args);
+
           command_buffer_.set_scalar_result((uint64_t) *cufuncs_.back());
-          std::cout << "<<<<<<<<<<accessing function " << *cufuncs_.back() << std::endl;
           command_buffer_.set_curesult(result);
       }
 
+      //TODO specific manipulation about kernel_args needed
       if(function_fit(function_name, "cuLaunchKernel") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
           void* kernel_args[scalar_args_.size()];
-          for(int i = 9; i < scalar_args_.size(); i++){
-            kernel_args[i - 9] = scalar_args_.get_scalar_ptr() + i;
+          for(int i = 0; i < scalar_args_.size(); i++){
+            kernel_args[i] = scalar_args_.get_scalar_ptr() + i;
           }
 
-          CUresult result = cuLaunchKernel((CUfunction)scalar_args_[0],
-                                            scalar_args_[1], scalar_args_[2], scalar_args_[3],
-                                            scalar_args_[4], scalar_args_[5], scalar_args_[6],
-                                            scalar_args_[7], (CUstream) scalar_args_[8],
-                                            kernel_args, nullptr);
+          using param_t = FunctionTraits<decltype(cuLaunchKernel)>::ParameterTuple;
+          param_t &args = *(param_t*)(cuda_args_.get_ptr());
+          std::get<9>(args) = kernel_args;
+          CUresult result = std::apply(cuLaunchKernel, args);
 
           command_buffer_.set_curesult(result);
       }
@@ -147,29 +158,19 @@ class CUDAServer{
       //HACK consider controlled access pattern
       if(function_fit(function_name, "cuMemcpyDtoH") == 0){
           std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
-          CUresult result = cuMemcpyDtoH(vgpu.get(), scalar_args_[1], scalar_args_[2]);
+
+          using param_t = FunctionTraits<decltype(cuMemcpyDtoH)>::ParameterTuple;
+          param_t &args = *(param_t*)(cuda_args_.get_ptr());
+          std::get<0>(args) = vgpu.get();
+          CUresult result = std::apply(cuMemcpyDtoH, args);
+
           command_buffer_.set_curesult(result);
       }
 
       if(func_map.count(function_name)) func_map[function_name]();
-      // // if(function_name == "cuCtxDestroy"){
-      // //     cuCtxDestroy(cucontext);
-      // // }
 
       command_buffer_.impl_finish();
     }
-
-    /* deprecated: hard to find a unified way to store the func_map. */
-    // /* generic implementation for remoted API functions. */
-    // template <typename F>
-    // void call_function(){};
-
-    // template <typename R, typename... Args>
-    // void call_function<R(Args...)>(){
-    //     using param_t = std::tuple<Args...>;
-    //     CUresult result = std::apply(f, *(param_t*)(cuda_args_.get_ptr()));
-    //     command_buffer_.set_curesult(result);
-    // }
 
     CUDA_API_IMPL(cuMemFree)
     CUDA_API_IMPL(cuModuleUnload)

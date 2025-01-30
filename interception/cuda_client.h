@@ -16,22 +16,13 @@ class CUDAClient{
     CUDAClient(){};
     ~CUDAClient(){};
 
-    //TODO refactor to return `CUresult`
-    void CallCudaFunction(const char* func_name,
-                          std::vector<std::string> &string_arg,
-                          std::vector<uint64_t> &scalar_args){
-      scalar_args_.set(scalar_args);
-      if(!string_arg.empty()) string_args_.set(string_arg[0]);
-      command_buffer_.push(func_name);
-    }
-    void CallCudaFunction(const char* func_name){
-      command_buffer_.push(func_name);
-    }
-    CUresult CallCudaFunction_v2(const char* func_name){
+    CUresult CallCudaFunction(const char* func_name){
       command_buffer_.push(func_name);
       return get_curesult();
     }
     void* get_args_ptr() { return cuda_args_.get_ptr(); };
+    void set_scalar_args(std::vector<uint64_t> &vals) { scalar_args_.set(vals); };
+    void set_string_args(const char* content) { string_args_.set(content); };
 
     uint64_t get_scalar_result() { return command_buffer_.get_scalar_result(); };
     CUresult get_curesult() { return command_buffer_.get_curesult(); };
