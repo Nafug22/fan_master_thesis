@@ -54,10 +54,7 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 /* Macro used to intercept and then generate corresponding remoting API for CUDA driver functions. */
 #define CU_HOOK_REMOTE(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params{  \
-    using param_t = FunctionTraits<decltype(symbol)>::ParameterTuple; \
-    param_t args(__VA_ARGS__);  \
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));  \
-    return client.CallCudaFunction(__func__); \
+    return client.CallCudaFunction(__func__, std::forward_as_tuple(__VA_ARGS__)); \
   }
 //==================================================================================================================
 //currently no work to do, CUDA will only be initialized on the host
@@ -70,29 +67,26 @@ extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){ return CUDA_SUCCESS; };
 extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
     using param_t = FunctionTraits<decltype(cuMemAlloc)>::ParameterTuple;
     param_t args(dptr, bytesize);
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
-    client.CallCudaFunction(__func__);
+    CUresult result = client.CallCudaFunction(__func__, args);
     *dptr = client.get_scalar_result();
 
-    return client.get_curesult();
+    return result;
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
     using param_t = FunctionTraits<decltype(cuMemcpyHtoD)>::ParameterTuple;
     param_t args(dstDevice, srcHost, ByteCount);
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
     vgpu.to_device(srcHost, ByteCount);
-    client.CallCudaFunction(__func__);
+    client.CallCudaFunction(__func__, args);
 
     return client.get_curesult();
 }
 //==================================================================================================================
+//* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
     using param_t = FunctionTraits<decltype(cuModuleLoad)>::ParameterTuple;
     param_t args(cu_module, fname);
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
-    client.set_string_args(fname);
-    client.CallCudaFunction(__func__);
+    client.CallCudaFunction(__func__, args);
     *cu_module = (CUmodule) client.get_scalar_result();
 
     return client.get_curesult();
@@ -101,19 +95,17 @@ extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname)
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     using param_t = FunctionTraits<decltype(cuMemcpyDtoH)>::ParameterTuple;
     param_t args(dstHost, srcDevice, ByteCount);
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
-    client.CallCudaFunction(__func__);
+    client.CallCudaFunction(__func__, args);
 
     vgpu.from_device(dstHost, ByteCount);
     return client.get_curesult();
 }
 //==================================================================================================================
+//* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     using param_t = FunctionTraits<decltype(cuModuleGetFunction)>::ParameterTuple;
     param_t args(hfunc, hmod, name);
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
-    client.set_string_args(name);
-    client.CallCudaFunction(__func__);
+    client.CallCudaFunction(__func__, args);
     *hfunc = (CUfunction) client.get_scalar_result();
     hashfunc[*hfunc] = name;
 
@@ -145,8 +137,7 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     param_t args(f, gridDimX, gridDimY, gridDimZ,
                 blockDimX, blockDimY, blockDimZ,
                 sharedMemBytes, hStream, kernelParams, extra);
-    memcpy(client.get_args_ptr(), &args, sizeof(param_t));
-    CUresult result = client.CallCudaFunction(__func__);
+    CUresult result = client.CallCudaFunction(__func__, args, scalar_args);
 
     return result;
 }
