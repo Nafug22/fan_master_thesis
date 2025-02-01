@@ -54,7 +54,9 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 /* Macro used to intercept and then generate corresponding remoting API for CUDA driver functions. */
 #define CU_HOOK_REMOTE(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params{  \
-    return client.CallCudaFunction(__func__, std::forward_as_tuple(__VA_ARGS__)); \
+    using param_t = FunctionTraits<decltype(symbol)>::ParameterTuple; \
+    param_t args(__VA_ARGS__);  \
+    return client.CallCudaFunction(__func__, args); \
   }
 //==================================================================================================================
 //currently no work to do, CUDA will only be initialized on the host
@@ -132,7 +134,6 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
         scalar_args[i] = *reinterpret_cast<std::uint64_t*>(kernelParams[i]);
     }
 
-    client.set_scalar_args(scalar_args);
     using param_t = FunctionTraits<decltype(cuLaunchKernel)>::ParameterTuple;
     param_t args(f, gridDimX, gridDimY, gridDimZ,
                 blockDimX, blockDimY, blockDimZ,

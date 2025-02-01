@@ -2,16 +2,14 @@
 #define STREAM_H
 
 #include <cstring>
+#include <cuda.h>
 #define BUFFER_SIZE 10000
 
-/**
- * @brief decode the response located in the buffer.
- */
 class Response {
   public:
-    Response(void* response_buffer) : mdata_(std::malloc(msize_)),
-                                      curesult_buffer_(std::static_cast<CUresult*>(mdata_)),
-                                      scalar_result_buffer_(std::reinterpret_cast<uint64_t*>(mdata_ + 1)){};
+    Response() : mdata_(std::malloc(msize_)),
+                        curesult_buffer_(reinterpret_cast<CUresult*>(mdata_)),
+                        scalar_result_buffer_(reinterpret_cast<uint64_t*>(curesult_buffer_ + 1)){};
     ~Response(){ free(mdata_); };
 
     CUresult curesult() { return *curesult_buffer_; };
@@ -26,7 +24,7 @@ class Response {
     CUresult *curesult_buffer_;
     uint64_t *scalar_result_buffer_;
 
-    static size_t msize_ = sizeof(CUresult) + sizeof(uint64_t);
+    static const size_t msize_ = sizeof(CUresult) + sizeof(uint64_t);
     void* mdata_;
 };
 
@@ -38,7 +36,7 @@ class Response {
  */
 class Serializer {
   public:
-    explicit Serializer() : mdata_(std::malloc(BUFFER_SIZE)), mcount_(0){};
+    explicit Serializer() : mdata_((char*)std::malloc(BUFFER_SIZE)), mcount_(0){};
     ~Serializer(){ free(mdata_); };
 
     Serializer& operator<<(size_t &size){
@@ -55,7 +53,8 @@ class Serializer {
         std::memcpy(mdata_ + mcount_, str_content, size * sizeof(char));
         mcount_ += size * sizeof(char);
 
-        std::memcpy(mdata_ + mcount_, '\0', sizeof(char));
+        static char term = '\0';
+        std::memcpy(mdata_ + mcount_, &term, sizeof(char));
         mcount_ += sizeof(char);
 
         return *this;
@@ -96,7 +95,7 @@ class Serializer {
     void clean() { mcount_ = 0; };
 
   private:
-    void* mdata_;
+    char* mdata_;
     size_t mcount_;
 
     template <typename Tuple, std::size_t... I>
@@ -107,7 +106,7 @@ class Serializer {
 
 class Deserializer {
   public:
-    explicit Deserializer() : mdata_(std::malloc(BUFFER_SIZE)), mcount_(0){};
+    explicit Deserializer() : mdata_((char*)std::malloc(BUFFER_SIZE)), mcount_(0){};
     ~Deserializer(){ free(mdata_); };
 
     Deserializer& operator>>(size_t &size){
@@ -122,7 +121,7 @@ class Deserializer {
         size_t size;
         operator>>(size);
 
-        result = mdata_ + mcount_;
+        result = (char*)(mdata_ + mcount_);
         mcount_ += (size + 1) * sizeof(char); //plus the terminator
 
         return *this;
@@ -152,9 +151,9 @@ class Deserializer {
         operator>>(size);
 
         kernel_args.reserve(size);
-        uint64_t* kernel_start = std::static_cast<uint64_t*>(mdata_ + mcount_);
+        uint64_t* kernel_start = reinterpret_cast<uint64_t*>(mdata_ + mcount_);
         for(int i = 0; i < size; i++){
-            kernel_args[i] = std::static_cast<void*>(kernel_start + i);
+            kernel_args[i] = reinterpret_cast<void*>(kernel_start + i);
         }
         mcount_ += size * sizeof(uint64_t);
 
@@ -162,9 +161,10 @@ class Deserializer {
     }
 
     void clean() { mcount_ = 0; };
+    void* data() {return mdata_; };
     size_t size() { return BUFFER_SIZE; };
   private:
-    void* mdata_;
+    char* mdata_;
     size_t mcount_;
 
     template <typename Tuple, size_t... I>

@@ -6,9 +6,11 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 #include <cuda.h>
 
-#include "shared_memory_manager.h"
 #include "type_decl.h"
 #include "stream.h"
 
@@ -20,9 +22,9 @@
 void call_##symbol(){ \
     std::cout << "<<<<<<<<<<implemented as " << #symbol << std::endl; \
     using param_t = FunctionTraits<decltype(symbol)>::ParameterTuple;  \
-    param_t args; obj.convert(args);  \
+    param_t args; deserializer_ >> args;  \
     CUresult result = std::apply(symbol, args);                \
-    set_curesult(result);                              \
+    response_.set_curesult(result);                              \
 }
 
 class CUDAServer{
@@ -91,20 +93,21 @@ class CUDAServer{
             close(server_fd);
         }
 
-        ::cout << "Serverlistening on " << SOCKET_PATH << ::endl;
+        std::cout << "Serverlistening on " << SOCKET_PATH << std::endl;
         return server_fd;
     }
 
     int client_fd_;
     int initialize_client(){
         struct sockaddr_un client_addr;
+        socklen_t client_len = sizeof(client_addr);
         int client_fd = accept(server_fd_, (struct sockaddr*)&client_addr, &client_len);
         if(client_fd == -1){
             perror("accept failed");
-            close(server_fd);
+            close(server_fd_);
         }
 
-        ::cout << "Client connected!" << ::endl;
+        std::cout << "Client connected!" << std::endl;
         return client_fd;
     }
 
@@ -120,7 +123,7 @@ class CUDAServer{
     Deserializer deserializer_;
     char* pull_command(){
         deserializer_.clean();
-        int bytes_read = read(client_fd, deserializer_.data(), deserializer_.size());
+        int bytes_read = read(client_fd_, deserializer_.data(), deserializer_.size());
         char* func_name;
         deserializer_ >> func_name;
         return func_name;
@@ -135,8 +138,8 @@ class CUDAServer{
     VirtualGPU vgpu{(1 << 20) * sizeof(float)};
     void implement_cuda_function(){
       cuCtxSetCurrent(cucontext);
-      char* func_name = pull_command();
-      std::cout << "Received GPU commands: " << func_name << std::endl;
+      char* function_name = pull_command();
+      std::cout << "Received GPU commands: " << function_name << std::endl;
 
       //! change the buffer size here (how about transfer the size in the beginning?)
       //TODO client name should be used in the future

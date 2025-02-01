@@ -23,7 +23,7 @@ class CUDAClient{
   public:
     CUDAClient() : sock_(initialize_sock()){};
     ~CUDAClient(){
-        close(sock);
+        close(sock_);
     }
 
     //TODO consider combine the two `CallCudaFunction` into one.
@@ -39,10 +39,10 @@ class CUDAClient{
      * @return The execution result on the host.
      */
     template <typename... TupleArgs>
-    CUresult CallCudaFunction(const char* &func_name, const std::tuple<TupleArgs> &args){
+    CUresult CallCudaFunction(const char* func_name, std::tuple<TupleArgs...> &args){
         serializer_ << func_name << args;
 
-        send(sock, serializer_.data(), serializer_.size(), 0);
+        send(sock_, serializer_.data(), serializer_.size(), 0);
         wait_recv();
         serializer_.clean();
         return response_.curesult();
@@ -53,16 +53,17 @@ class CUDAClient{
      */
     template <typename... TupleArgs>
     CUresult CallCudaFunction(const char* func_name,
-                              const std::tuple<TupleArgs> &args,
-                              const ::vector<uint64_t> &kernel_args){
+                              std::tuple<TupleArgs...> &args,
+                              std::vector<uint64_t> &kernel_args){
         serializer_ << func_name << args << kernel_args;
-        send(sock, serializer_.data(), serializer_.size(), 0);
+        send(sock_, serializer_.data(), serializer_.size(), 0);
         wait_recv();
         serializer_.clean();
         return response_.curesult();
     }
 
     uint64_t get_scalar_result() { return response_.cuscalar(); };
+    CUresult get_curesult() { return response_.curesult(); };
 
   private:
     int sock_;
@@ -85,7 +86,7 @@ class CUDAClient{
     }
 
     void wait_recv(){
-        recv(sock, response_.data(), response_.size(), 0);
+        recv(sock_, response_.data(), response_.size(), 0);
     }
 };
 
