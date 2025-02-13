@@ -14,7 +14,8 @@
 #include "type_decl.h"
 #include "stream.h"
 
-#define SOCKET_PATH "./v.sock_1234"
+#define SOCKET_PATH "/home/ubuntu/firecracker/v.sock_1234"
+#define VGPU_PATH "/dev/shm/firecracker_vgpu"
 #define ADD_SYMBOL(symbol) {SYMBOL_TO_STR(symbol), [this]() { this->call_##symbol(); }}
 
 /* generate the corresponding cuda function with arguments stored in shared memory. */
@@ -122,10 +123,12 @@ class CUDAServer{
 
     Deserializer deserializer_;
     char* pull_command(){
+        int bytes_read = 0;
+        while(bytes_read <= 0){
+          bytes_read = read(client_fd_, deserializer_.data(), deserializer_.size());
+        }
         deserializer_.clean();
-        int bytes_read = read(client_fd_, deserializer_.data(), deserializer_.size());
-        char* func_name;
-        deserializer_ >> func_name;
+        char* func_name; deserializer_ >> func_name;
         return func_name;
     }
   #pragma endregion
@@ -135,7 +138,7 @@ class CUDAServer{
   private:
     //HACK consider adding constraints that are consistant with the gpu partition
     //TODO vgpu initialization with configured size
-    VirtualGPU vgpu{(1 << 20) * sizeof(float)};
+    VirtualGPU vgpu{VGPU_PATH, (1 << 20) * sizeof(float)};
     void implement_cuda_function(){
       cuCtxSetCurrent(cucontext);
       char* function_name = pull_command();
@@ -160,9 +163,8 @@ class CUDAServer{
           device_ptrs_.push_back(std::make_unique<CUdeviceptr>());
           std::get<0>(args) = device_ptrs_.back().get();
           CUresult result = std::apply(cuMemAlloc, args);
-
-          response_.set_cuscalar(*device_ptrs_.back());
           response_.set_curesult(result);
+          response_.set_cuscalar(*device_ptrs_.back());
       }
 
       //HACK consider controled access pattern
@@ -210,8 +212,8 @@ class CUDAServer{
 
           using param_t = FunctionTraits<decltype(cuLaunchKernel)>::ParameterTuple;
           param_t args; deserializer_ >> args;
-          std::vector<void*> kernel_args; deserializer_ >> kernel_args;
-          std::get<9>(args) = kernel_args.data();
+          std::vector<uint64_t*> kernel_args; deserializer_ >> kernel_args;
+          std::get<9>(args) = (void**)kernel_args.data();
           CUresult result = std::apply(cuLaunchKernel, args);
 
           response_.set_curesult(result);
@@ -225,11 +227,24 @@ class CUDAServer{
           param_t args; deserializer_ >> args;
           std::get<0>(args) = vgpu.get();
           CUresult result = std::apply(cuMemcpyDtoH, args);
-
           response_.set_curesult(result);
       }
 
+      // if(function_fit(function_name, "check_vgpu") == 0){
+      //   std::cout << "inside check_vgpu" << std::endl;
+      //   int* start = (int*)vgpu.get();
+      //   std::cout << "before to_device, start = " << *start << std::endl;
+      //   std::vector<int> temp(100, 1);
+      //   vgpu.to_device(temp.data(), 100 * sizeof(int));
+      //   vgpu.sync_fadvise();
+      //   vgpu.sync();
+      //   std::cout << "inside check_vgpu" << std::endl;
+      //   std::cout << "start = " << *start << std::endl;
+
+      //   response_.set_curesult(CUDA_SUCCESS);
+      // }
       if(func_map.count(function_name)) func_map[function_name]();
+      return_result();
     }
 
     CUDA_API_IMPL(cuMemFree)

@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <string>
+#include <cstdint>
 
 #define STRING_ARG_PORT 1
 #define VGPU_PORT 2

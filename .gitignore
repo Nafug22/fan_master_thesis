@@ -1,4 +1,5 @@
 *.so
+*.sh
 
 grpc_generated/
 build/

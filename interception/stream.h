@@ -3,13 +3,25 @@
 
 #include <cstring>
 #include <cuda.h>
+#include <utility>
+#include <iostream>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <linux/fs.h>
+#include <unistd.h>
 #define BUFFER_SIZE 10000
 
+/**
+ * @class Response
+ * @brief Used by the server to write and send response.
+ *        Used by the client to receive and read response.
+ */
 class Response {
   public:
     Response() : mdata_(std::malloc(msize_)),
-                        curesult_buffer_(reinterpret_cast<CUresult*>(mdata_)),
-                        scalar_result_buffer_(reinterpret_cast<uint64_t*>(curesult_buffer_ + 1)){};
+                 curesult_buffer_(reinterpret_cast<CUresult*>(mdata_)),
+                 scalar_result_buffer_(reinterpret_cast<uint64_t*>(curesult_buffer_ + 1)){};
     ~Response(){ free(mdata_); };
 
     CUresult curesult() { return *curesult_buffer_; };
@@ -21,59 +33,58 @@ class Response {
     static size_t size() { return msize_; };
 
   private:
-    CUresult *curesult_buffer_;
-    uint64_t *scalar_result_buffer_;
-
     static const size_t msize_ = sizeof(CUresult) + sizeof(uint64_t);
     void* mdata_;
+    CUresult *curesult_buffer_;
+    uint64_t *scalar_result_buffer_;
 };
 
 /**
  * @class Serializer
  * @brief Prepares original cuda function information as a flattened message,
  *        which will then be transferred via vsock to the host.
- * @
  */
 class Serializer {
   public:
     explicit Serializer() : mdata_((char*)std::malloc(BUFFER_SIZE)), mcount_(0){};
     ~Serializer(){ free(mdata_); };
 
-    Serializer& operator<<(size_t &size){
-        std::memcpy(mdata_ + mcount_, &size, sizeof(size_t));
-        mcount_ += sizeof(size_t);
+    /** the generic template for normal types */
+    template <typename T>
+    Serializer& operator<<(T &content){
+        std::memcpy(mdata_ + mcount_, &content, sizeof(T));
+        mcount_ += sizeof(T);
 
         return *this;
     }
 
-    Serializer& operator<<(const char* &str_content){
+    /** for strings */
+    Serializer& operator<<(const char* str_content){
         size_t size = std::strlen(str_content);
         operator<<(size);
 
         std::memcpy(mdata_ + mcount_, str_content, size * sizeof(char));
         mcount_ += size * sizeof(char);
 
-        static char term = '\0';
+        static const char term = '\0';
         std::memcpy(mdata_ + mcount_, &term, sizeof(char));
         mcount_ += sizeof(char);
 
         return *this;
     }
 
+    /*********************************************
+     *            For composite types            *
+     *********************************************/
     template <typename... Args>
     Serializer& operator<<(const std::tuple<Args...> &args){
         serialize_tuple(args, std::index_sequence_for<Args...>{});
         return *this;
     }
 
-    template <typename T>
-    Serializer& operator<<(T &content){
-        size_t size = sizeof(T);
-        operator<<(size);
-
-        std::memcpy(mdata_ + mcount_, &content, size);
-        mcount_ += size;
-
+    template <typename... Args>
+    Serializer& operator<<(Args... args){
+        operator<<(args...);
         return *this;
     }
 
@@ -104,22 +115,34 @@ class Serializer {
     }
 };
 
+/**
+ * @class Deserializer
+ * @brief Deserialize the flattened data in the receive buffer.
+ */
 class Deserializer {
   public:
     explicit Deserializer() : mdata_((char*)std::malloc(BUFFER_SIZE)), mcount_(0){};
     ~Deserializer(){ free(mdata_); };
 
-    Deserializer& operator>>(size_t &size){
-        std::memcpy(&size, mdata_ + mcount_, sizeof(size_t));
-        mcount_ += sizeof(size_t);
+    template <typename T>
+    Deserializer& operator>>(T &content){
+        std::memcpy(&content, mdata_ + mcount_, sizeof(T));
+        mcount_ += sizeof(T);
 
         return *this;
     }
 
-    //! for the server, allocate memory for func_name
+    Deserializer& operator>>(const char* &result){
+        size_t size; operator>>(size);
+
+        result = (const char*)(mdata_ + mcount_);
+        mcount_ += (size + 1) * sizeof(char); //plus the terminator
+
+        return *this;
+    }
+
     Deserializer& operator>>(char* &result){
-        size_t size;
-        operator>>(size);
+        size_t size; operator>>(size);
 
         result = (char*)(mdata_ + mcount_);
         mcount_ += (size + 1) * sizeof(char); //plus the terminator
@@ -127,35 +150,25 @@ class Deserializer {
         return *this;
     }
 
+    /*********************************************
+     *            For composite types            *
+     *********************************************/
     template <typename... Args>
     Deserializer& operator>>(std::tuple<Args...> &args){
         deserialize_tuple(args, std::index_sequence_for<Args...>{});
         return *this;
     }
 
-    template <typename T>
-    Deserializer& operator>>(T &content){
-        size_t size;
-        operator>>(size);
-
-        std::memcpy(&content, mdata_ + mcount_, size);
-        mcount_ += size;
-
-        return *this;
-    }
-
     //! read through the doc to check if any other cuda func use this type of data.
     //! if so, have another func for getting the kernel!
-    Deserializer& operator>>(std::vector<void*> &kernel_args){
-        size_t size;
-        operator>>(size);
+    Deserializer& operator>>(std::vector<uint64_t*> &kernel_args){
+        size_t size; operator>>(size);
 
-        kernel_args.reserve(size);
-        uint64_t* kernel_start = reinterpret_cast<uint64_t*>(mdata_ + mcount_);
+        kernel_args.resize(size);
         for(int i = 0; i < size; i++){
-            kernel_args[i] = reinterpret_cast<void*>(kernel_start + i);
+            kernel_args[i] = reinterpret_cast<uint64_t*>(mdata_ + mcount_);
+            mcount_ += sizeof(uint64_t);
         }
-        mcount_ += size * sizeof(uint64_t);
 
         return *this;
     }
@@ -173,4 +186,45 @@ class Deserializer {
     }
 };
 
+class VirtualGPU {
+  public:
+    VirtualGPU(const char* shm_path, size_t mem_size)
+        : vgpu_size_(mem_size),
+          shm_path_(shm_path){ initialize_vgpu(shm_path); };
+    ~VirtualGPU(){ close_vgpu(); };
+
+    void *get() { return vgpu_ptr_; };
+    void to_device(const void* data_ptr, size_t byte_size) {
+      memcpy(vgpu_ptr_, data_ptr, byte_size);
+      msync(vgpu_ptr_, byte_size, MS_SYNC | MS_INVALIDATE);
+      std::cout << "to_device: the first element is " << *(int*)(vgpu_ptr_) << std::endl;
+    }
+    void from_device(void* data_ptr, size_t byte_size) {
+      memcpy(data_ptr, vgpu_ptr_, byte_size);
+    }
+
+    void sync(){ if(fsync(fd_) == -1) printf("error on fsync\n"); };
+    void remap() {
+        close_vgpu();
+        initialize_vgpu(shm_path_);
+    }
+  private:
+    void initialize_vgpu(const char* shm_path){
+        fd_ = open(shm_path, O_RDWR | O_SYNC | O_DIRECT);
+        if (fd_ < 0) std::cerr << "Failed to open shared memory file\n";
+
+        vgpu_ptr_ = mmap(nullptr, vgpu_size_, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_SYNC, fd_, 0);
+        if (vgpu_ptr_ == MAP_FAILED) std::cerr << "mmap failed\n";
+    }
+
+    void close_vgpu(){
+        munmap(vgpu_ptr_, vgpu_size_);
+        close(fd_);
+    }
+
+    int fd_;
+    void* vgpu_ptr_;
+    size_t vgpu_size_;
+    const char* shm_path_;
+};
 #endif

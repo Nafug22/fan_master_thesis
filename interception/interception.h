@@ -3,8 +3,6 @@
 
 #include "cuda_client.h"
 #include "compiler.h"
-#include "shared_memory_manager.h"
-
 #include <cstdint>
 #include <cuda.h>
 #include <dlfcn.h>
@@ -12,7 +10,11 @@
 #include <unordered_map>
 
 #include "type_decl.h"
+#ifndef PTX_SRC
+  #define PTX_SRC "./vector_add.ptx"
+#endif
 
+#define VGPU_PATH "/dev/vdb"
 extern "C" {
 void *__libc_dlsym(void *map, const char *name);
 void *__libc_dlopen_mode(const char *name, int mode);
@@ -25,7 +27,8 @@ typedef void *(*fnDlsym)(void *, const char *);
 void* libcuda_driver_handle = dlopen("libcuda.so", RTLD_LAZY);
 
 CUDAClient client{};
-static CUFuncProto func_proto("/home/ubuntu/fan_thesis/fan_master_thesis/vector_add.ptx");
+VirtualGPU vgpu(VGPU_PATH, (1 << 20) * sizeof(float));
+static CUFuncProto func_proto{PTX_SRC};
 //HACK consider integrate into the vgpu
 static std::unordered_map<CUfunction, std::string> hashfunc;
 #endif

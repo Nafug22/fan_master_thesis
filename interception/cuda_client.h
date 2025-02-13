@@ -62,9 +62,20 @@ class CUDAClient{
         return response_.curesult();
     }
 
+
+    template <typename... Args>
+    CUresult CallCudaFunction(const char* func_name, Args... args){
+        serializer_ << func_name;
+        (serializer_ << ... << args);
+
+        send(sock_, serializer_.data(), serializer_.size(), 0);
+        wait_recv();
+        serializer_.clean();
+        return response_.curesult();
+    }
+
     uint64_t get_scalar_result() { return response_.cuscalar(); };
     CUresult get_curesult() { return response_.curesult(); };
-
   private:
     int sock_;
     Response response_;
