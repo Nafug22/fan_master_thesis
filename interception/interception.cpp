@@ -53,7 +53,8 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 /* Macro used to intercept and then generate corresponding remoting API for CUDA driver functions. */
 #define CU_HOOK_REMOTE(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params{  \
-    return client.CallCudaFunction(__func__, __VA_ARGS__); \
+    client.CallCudaFunction(__func__, __VA_ARGS__); \
+    return client.wait_recv(); \
   }
 //==================================================================================================================
 //currently no work to do, CUDA will only be initialized on the host
@@ -64,42 +65,42 @@ extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUd
 extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){ return CUDA_SUCCESS; };
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
-    CUresult result = client.CallCudaFunction(__func__, dptr, bytesize);
+    client.CallCudaFunction(__func__, dptr, bytesize);
+    CUresult result = client.wait_recv();
     *dptr = client.get_scalar_result();
 
     return result;
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
-    vgpu.to_device(srcHost, ByteCount);
     client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount);
-
-    return client.get_curesult();
+    client.to_device(srcHost, ByteCount);
+    CUresult result = client.wait_recv();
+    return result;
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     client.CallCudaFunction(__func__, dstHost, srcDevice, ByteCount);
-    vgpu.remap();
-    vgpu.from_device(dstHost, ByteCount);
-
-    return client.get_curesult();
+    client.from_device(dstHost, ByteCount);
+    CUresult result = client.wait_recv();
+    return result;
 }
 //==================================================================================================================
 //* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
     client.CallCudaFunction(__func__, cu_module, fname);
+    CUresult result = client.wait_recv();
     *cu_module = (CUmodule) client.get_scalar_result();
-
-    return client.get_curesult();
+    return result;
 }
 //==================================================================================================================
 //* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     client.CallCudaFunction(__func__, hfunc, hmod, name);
+    CUresult result = client.wait_recv();
     *hfunc = (CUfunction) client.get_scalar_result();
     hashfunc[*hfunc] = name;
-
-    return client.get_curesult();
+    return result;
 }
 //==================================================================================================================
 //FIXME how to deal with the `extra`? where is it used? =
@@ -123,9 +124,10 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     }
 
     std::cout << "calling function " << f << std::endl;
-    CUresult result = client.CallCudaFunction(__func__, f, gridDimX, gridDimY, gridDimZ,
-                                              blockDimX, blockDimY, blockDimZ,
-                                              sharedMemBytes, hStream, kernelParams, extra, scalar_args);
+    client.CallCudaFunction(__func__, f, gridDimX, gridDimY, gridDimZ,
+                            blockDimX, blockDimY, blockDimZ,
+                            sharedMemBytes, hStream, kernelParams, extra, scalar_args);
+    CUresult result = client.wait_recv();
 
     return result;
 }

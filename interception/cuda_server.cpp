@@ -125,7 +125,7 @@ class CUDAServer{
     char* pull_command(){
         int bytes_read = 0;
         while(bytes_read <= 0){
-          bytes_read = read(client_fd_, deserializer_.data(), deserializer_.size());
+            bytes_read = read(client_fd_, deserializer_.data(), deserializer_.size());
         }
         deserializer_.clean();
         char* func_name; deserializer_ >> func_name;
@@ -138,7 +138,7 @@ class CUDAServer{
   private:
     //HACK consider adding constraints that are consistant with the gpu partition
     //TODO vgpu initialization with configured size
-    VirtualGPU vgpu{VGPU_PATH, (1 << 20) * sizeof(float)};
+    vsock::VirtualGPU vgpu{};
     void implement_cuda_function(){
       cuCtxSetCurrent(cucontext);
       char* function_name = pull_command();
@@ -173,9 +173,18 @@ class CUDAServer{
 
           using param_t = FunctionTraits<decltype(cuMemcpyHtoD)>::ParameterTuple;
           param_t args; deserializer_ >> args;
-          std::get<1>(args) = vgpu.get();
+          size_t bytesize = std::get<2>(args);
+          char* vgpu_ptr = (char*)vgpu.prepare(bytesize);
+          size_t total_recv = 0;
+          while(total_recv < bytesize){
+              ssize_t local_recv = recv(client_fd_, vgpu_ptr + total_recv, bytesize - total_recv, 0);
+              total_recv += local_recv;
+              std::cout << "total_recv = " << total_recv << std::endl;
+          }
+          std::cout << "right before the cuda function " << std::endl;
+          std::get<1>(args) = (void*)vgpu_ptr;
           CUresult result = std::apply(cuMemcpyHtoD, args);
-
+          std::cout << "function HtoD finished" << std::endl;
           response_.set_curesult(result);
       }
 
@@ -225,8 +234,10 @@ class CUDAServer{
 
           using param_t = FunctionTraits<decltype(cuMemcpyDtoH)>::ParameterTuple;
           param_t args; deserializer_ >> args;
-          std::get<0>(args) = vgpu.get();
+          size_t bytesize = std::get<2>(args);
+          std::get<0>(args) = vgpu.prepare(bytesize);
           CUresult result = std::apply(cuMemcpyDtoH, args);
+          send(client_fd_, vgpu.get(), bytesize, 0);
           response_.set_curesult(result);
       }
 

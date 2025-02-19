@@ -10,7 +10,53 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 #include <unistd.h>
+
+#include <sys/socket.h>
+#include <linux/vm_sockets.h>
 #define BUFFER_SIZE 10000
+#define GPU_SIZE 10000
+
+/**
+ * @class VsockHandle
+ * @brief vsock socket management for a client with corresponding cid and port.
+ * @details responsible for the construction and destruction of the vsock, and handles
+ *          all the details for correct send and receive data.
+ */
+class VsockHandle{
+  public:
+    VsockHandle(unsigned int cid, unsigned int port) : sock_(initialize_sock(cid, port)){};
+    ~VsockHandle(){ close(sock_); };
+
+    void transmit(const void* data_ptr, size_t data_size){
+        send(sock_, data_ptr, data_size, 0);
+    }
+
+    void receive(void* data_ptr, size_t data_size){
+        ssize_t total_size = 0;
+        char* data = (char*) data_ptr;
+        while(total_size < data_size){
+          ssize_t local_size = recv(sock_, data + total_size, data_size - total_size, 0);
+          total_size += local_size;
+        }
+    }
+
+  private:
+    int sock_;
+    int initialize_sock(unsigned int cid, unsigned int port){
+        int sock = socket(AF_VSOCK, SOCK_STREAM, 0);
+        if(sock < 0) perror("socket");
+
+        sockaddr_vm sa = {};
+        sa.svm_family = AF_VSOCK;
+        sa.svm_cid = cid;
+        sa.svm_port = port;
+
+        std::cout << "Connecting to host ..." << std::endl;
+        if(connect(sock, (struct sockaddr*)&sa, sizeof(sa)) < 0) perror("connect");
+
+        return sock;
+    }
+};
 
 /**
  * @class Response
@@ -58,7 +104,7 @@ class Serializer {
         return *this;
     }
 
-    /** for strings */
+    /** for `char*` particularly to get it correct. */
     Serializer& operator<<(const char* str_content){
         size_t size = std::strlen(str_content);
         operator<<(size);
@@ -103,6 +149,7 @@ class Serializer {
     /** returns the starting of the buffer that stores the flattened message. */
     void* data() {return mdata_; };
 
+    /** cleans the read count with no deletion. */
     void clean() { mcount_ = 0; };
 
   private:
@@ -186,6 +233,7 @@ class Deserializer {
     }
 };
 
+// deprecated due to unknown cache coherency issues
 class VirtualGPU {
   public:
     VirtualGPU(const char* shm_path, size_t mem_size)
@@ -227,4 +275,45 @@ class VirtualGPU {
     size_t vgpu_size_;
     const char* shm_path_;
 };
+
+namespace vsock
+{
+/**
+ * @class VirtualGPU
+ * @brief use `vsock` as the underlying implementation.
+ * @details the commands and data transfer share the same socket, but
+ *          different buffers. May be no buffer at all. Because the array
+ *          of data can be a buffer itself.
+ */
+class VirtualGPU {
+  public:
+    VirtualGPU() : vgpu_(nullptr), vgpu_size_(0){};
+    ~VirtualGPU(){ if(!vgpu_) free(vgpu_); };
+
+    void to_device(void *data_ptr, size_t data_size){
+        if(data_size > vgpu_size_) allocate_vgpu(data_size);
+        memcpy(vgpu_, data_ptr, data_size);
+    }
+    void from_device(size_t data_size){
+        if(data_size > vgpu_size_) allocate_vgpu(data_size);
+    }
+
+    void* prepare(size_t data_size){
+        if(data_size > vgpu_size_) allocate_vgpu(data_size);
+        return vgpu_;
+    }
+
+    void* get() { return vgpu_; };
+
+  private:
+    void* vgpu_;
+    size_t vgpu_size_;
+
+    void allocate_vgpu(size_t size){
+        if(vgpu_) free(vgpu_);
+        vgpu_ = malloc(size);
+        vgpu_size_ = size;
+    }
+};
+}
 #endif
