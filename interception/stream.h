@@ -13,6 +13,8 @@
 
 #include <sys/socket.h>
 #include <linux/vm_sockets.h>
+
+#include <stdexcept>
 #define BUFFER_SIZE 10000
 #define GPU_SIZE 10000
 
@@ -25,10 +27,17 @@
 class VsockHandle{
   public:
     VsockHandle(unsigned int cid, unsigned int port) : sock_(initialize_sock(cid, port)){};
-    ~VsockHandle(){ close(sock_); };
+    ~VsockHandle(){ if(sock_ != -1) close(sock_); };
 
     void transmit(const void* data_ptr, size_t data_size){
-        send(sock_, data_ptr, data_size, 0);
+        char* remain_data = (char*)data_ptr;
+        while(data_size > 0){
+            ssize_t bytes_send = send(sock_, remain_data, data_size, 0);
+            if(bytes_send <= 0)
+                throw std::runtime_error("Socket closed or error occurred during recv()");
+            data_size -= bytes_send;
+            remain_data += bytes_send;
+        }
     }
 
     void receive(void* data_ptr, size_t data_size){
@@ -38,6 +47,11 @@ class VsockHandle{
           ssize_t local_size = recv(sock_, data + total_size, data_size - total_size, 0);
           total_size += local_size;
         }
+    }
+
+    void close_socket() {
+        close(sock_);
+        sock_ = -1;
     }
 
   private:

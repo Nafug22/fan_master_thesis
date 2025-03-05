@@ -1,4 +1,4 @@
-add_executable(cuda_server cuda_server.cpp shared_memory_manager.h)
+add_executable(cuda_server cuda_server.cpp gpu_instance.cpp)
 target_link_libraries(cuda_server PRIVATE ${CUDA_DRIVER_LIB})
 
 add_library(interception SHARED interception.cpp interception.h)

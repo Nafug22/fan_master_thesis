@@ -14,7 +14,6 @@
   #define PTX_SRC "./vector_add.ptx"
 #endif
 
-#define VGPU_PATH "/dev/vdb"
 extern "C" {
 void *__libc_dlsym(void *map, const char *name);
 void *__libc_dlopen_mode(const char *name, int mode);
@@ -27,7 +26,6 @@ typedef void *(*fnDlsym)(void *, const char *);
 void* libcuda_driver_handle = dlopen("libcuda.so", RTLD_LAZY);
 
 CUDAClient client{};
-VirtualGPU vgpu(VGPU_PATH, (1 << 20) * sizeof(float));
 static CUFuncProto func_proto{PTX_SRC};
 //HACK consider integrate into the vgpu
 static std::unordered_map<CUfunction, std::string> hashfunc;

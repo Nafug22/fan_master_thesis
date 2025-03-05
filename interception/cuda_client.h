@@ -60,6 +60,7 @@ class CUDAClient{
 
     uint64_t get_scalar_result() { return response_.cuscalar(); };
     CUresult get_curesult() { return response_.curesult(); };
+    void close() { vsock_handle_.close_socket(); };
   private:
     VsockHandle vsock_handle_;
     Response response_;

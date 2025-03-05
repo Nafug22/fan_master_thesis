@@ -62,7 +62,12 @@ extern "C" CUresult CUDAAPI cuInit(unsigned int Flags){ return CUDA_SUCCESS; };
 extern "C" CUresult CUDAAPI cuDeviceGet(CUdevice* device, int ordinal){ return CUDA_SUCCESS; };
 extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUdevice dev){ return CUDA_SUCCESS; };
 //currently no work to do, context is managed by the host
-extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){ return CUDA_SUCCESS; };
+extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){
+  client.CallCudaFunction(__func__);
+  client.wait_recv();
+  client.close();
+  return CUDA_SUCCESS;
+}
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
     client.CallCudaFunction(__func__, dptr, bytesize);
