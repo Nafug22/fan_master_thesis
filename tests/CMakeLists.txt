@@ -15,3 +15,12 @@ set_tests_properties(preload_host_sample_test PROPERTIES ENVIRONMENT LD_PRELOAD=
 
 set_tests_properties(host_sample_build        PROPERTIES FIXTURES_SETUP    test_fixture)
 set_tests_properties(preload_host_sample_test PROPERTIES FIXTURES_REQUIRED test_fixture)
+
+file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
+foreach(child ${children})
+    if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${child})
+        if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${child}/CMakeLists.txt)
+            add_subdirectory(${child})
+        endif()
+    endif()
+endforeach()

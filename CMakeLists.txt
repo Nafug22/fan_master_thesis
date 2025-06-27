@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
-project(FineVGPU)
+project(FineVGPU LANGUAGES CUDA CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(BUILD_DIR ${CMAKE_SOURCE_DIR}/build CACHE INTERNAL "")
+set(BUILD_DIR ${CMAKE_BINARY_DIR} CACHE INTERNAL "build_directory")
 set(CUDA_HOME /usr/local/cuda)
 include_directories(${CUDA_HOME}/include)
 
