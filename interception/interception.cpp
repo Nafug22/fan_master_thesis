@@ -78,16 +78,16 @@ extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
-    client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount);
     client.to_device(srcHost, ByteCount);
+    client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount);
     CUresult result = client.wait_recv();
     return result;
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     client.CallCudaFunction(__func__, dstHost, srcDevice, ByteCount);
-    client.from_device(dstHost, ByteCount);
     CUresult result = client.wait_recv();
+    client.from_device(dstHost, ByteCount);
     return result;
 }
 //==================================================================================================================

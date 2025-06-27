@@ -10,6 +10,8 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 #include <unistd.h>
+#include <string>
+#include <fstream>
 
 #include <sys/socket.h>
 #include <linux/vm_sockets.h>
@@ -17,6 +19,7 @@
 #include <stdexcept>
 #define BUFFER_SIZE 10000
 #define GPU_SIZE 10000
+#define VGPU_FILE "/dev/vdb"
 
 /**
  * @class VsockHandle
@@ -251,43 +254,48 @@ class Deserializer {
 class VirtualGPU {
   public:
     VirtualGPU(const char* shm_path, size_t mem_size)
-        : vgpu_size_(mem_size),
-          shm_path_(shm_path){ initialize_vgpu(shm_path); };
-    ~VirtualGPU(){ close_vgpu(); };
+        : vgpu_size_(mem_size) { initialize_vgpu(shm_path); };
+    ~VirtualGPU(){
+        close_vgpu();
+    }
 
-    void *get() { return vgpu_ptr_; };
     void to_device(const void* data_ptr, size_t byte_size) {
       memcpy(vgpu_ptr_, data_ptr, byte_size);
-      msync(vgpu_ptr_, byte_size, MS_SYNC | MS_INVALIDATE);
-      std::cout << "to_device: the first element is " << *(int*)(vgpu_ptr_) << std::endl;
+      sync(byte_size);
     }
     void from_device(void* data_ptr, size_t byte_size) {
+      // lseek(fd_, 0, SEEK_SET);
+      // read(fd_, data_ptr, byte_size);
+      close_vgpu();
+      initialize_vgpu(VGPU_FILE);
       memcpy(data_ptr, vgpu_ptr_, byte_size);
     }
 
-    void sync(){ if(fsync(fd_) == -1) printf("error on fsync\n"); };
-    void remap() {
-        close_vgpu();
-        initialize_vgpu(shm_path_);
-    }
+    void* get() { return vgpu_ptr_; };
+    void sync(size_t byte_size){ msync(vgpu_ptr_, byte_size, MS_SYNC); };
   private:
     void initialize_vgpu(const char* shm_path){
         fd_ = open(shm_path, O_RDWR | O_SYNC | O_DIRECT);
         if (fd_ < 0) std::cerr << "Failed to open shared memory file\n";
-
-        vgpu_ptr_ = mmap(nullptr, vgpu_size_, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_SYNC, fd_, 0);
-        if (vgpu_ptr_ == MAP_FAILED) std::cerr << "mmap failed\n";
+        vgpu_ptr_ = mmap(NULL, vgpu_size_, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_SYNC, fd_, 0);
+        if (vgpu_ptr_ == MAP_FAILED) {
+            perror("mmap");
+            exit(1);
+        }
     }
 
     void close_vgpu(){
-        munmap(vgpu_ptr_, vgpu_size_);
-        close(fd_);
-    }
+      if (munmap(vgpu_ptr_, vgpu_size_) == -1) {
+        perror("munmap");
+      }
+      close(fd_);
+    };
+    // void close_vgpu(){};
 
     int fd_;
     void* vgpu_ptr_;
     size_t vgpu_size_;
-    const char* shm_path_;
+    std::string shm_path_;
 };
 
 namespace vsock

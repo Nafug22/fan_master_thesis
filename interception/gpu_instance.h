@@ -15,6 +15,8 @@
 #include "stream.h"
 #include "type_decl.h"
 
+#define SHM_PATH "/dev/shm/shared_mem"
+#define SHM_SIZE (1 << 20) * sizeof(float)
 #define ADD_SYMBOL(symbol) {SYMBOL_TO_STR(symbol), [this]() { this->symbol##_handler(); }}
 /* generate the corresponding cuda function with arguments stored in shared memory. */
 #define CUDA_API_IMPL(symbol) \
@@ -36,7 +38,8 @@ void symbol##_handler(){ \
  */
 class GPUInstance{
   public:
-    explicit GPUInstance(int device_id, int client_fd) : client_fd_(client_fd){
+    explicit GPUInstance(int device_id, int client_fd) : client_fd_(client_fd), vgpu_(SHM_PATH, (1 << 20) * sizeof(float)), vgpu_ptr_(vgpu_.get())
+    {
         cuDeviceGet(&device_, device_id);
         cuCtxCreate(&cucontext_, 0, device_);
     }
@@ -68,7 +71,8 @@ class GPUInstance{
     void return_result(){
         send(client_fd_, response_.data(), response_.size(), 0);
     }
-    vsock::VirtualGPU vgpu{};
+    VirtualGPU vgpu_;
+    void* vgpu_ptr_;
 
   private:
     Deserializer deserializer_;

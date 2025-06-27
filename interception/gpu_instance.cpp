@@ -36,22 +36,10 @@ void GPUInstance::implement_cuda_function(){
       using param_t = FunctionTraits<decltype(cuMemcpyHtoD)>::ParameterTuple;
       param_t args; deserializer_ >> args;
       long long bytesize = std::get<2>(args);
-      char* vgpu_ptr = (char*)vgpu.prepare(bytesize);
-      std::get<1>(args) = (void*)vgpu_ptr;
-      // recv(client_fd_, vgpu_ptr, bytesize, MSG_WAITALL);
-      while(bytesize > 0){
-          long long local_recv = recv(client_fd_, vgpu_ptr, bytesize, 0);
-          if(local_recv < 0){
-              perror("recv error");
-              break;
-          }
-
-          vgpu_ptr += local_recv;
-          bytesize -= local_recv;
-          // printf("%lld bytes remaining to be received\n", bytesize);
-      }
-      std::cout << "complete HtoD transfer" << std::endl;
+      std::get<1>(args) = vgpu_ptr_;
       CUresult result = std::apply(cuMemcpyHtoD, args);
+      float temp = ((float*)vgpu_ptr_)[0];
+      std::cout << "cuMemcpyHtoD gives " << temp << std::endl;
       response_.set_curesult(result);
   } else if(FUNC_COMP(function_name, cuModuleLoad)){
       //HACK consider access control in multi-client case
@@ -94,9 +82,12 @@ void GPUInstance::implement_cuda_function(){
       using param_t = FunctionTraits<decltype(cuMemcpyDtoH)>::ParameterTuple;
       param_t args; deserializer_ >> args;
       size_t bytesize = std::get<2>(args);
-      std::get<0>(args) = vgpu.prepare(bytesize);
+      std::get<0>(args) = vgpu_ptr_;
       CUresult result = std::apply(cuMemcpyDtoH, args);
-      send(client_fd_, vgpu.get(), bytesize, 0);
+      vgpu_.sync(bytesize);
+      float temp = ((float*)vgpu_ptr_)[0];
+      std::cout << "cuMemcpyDtoH gives " << temp << std::endl;
+
       response_.set_curesult(result);
   } else if(FUNC_COMP(function_name, cuCtxDestroy)){
       close(client_fd_);

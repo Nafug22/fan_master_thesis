@@ -14,11 +14,13 @@
 #define VSOCK_HOST_CID 2
 #define VSOCK_PORT 1234
 #define BUFFER_RECV 200
+#define SHM_PATH "/dev/vdb"
 
 //TODO add size exception control (when the BUFFER_SIZE is too small)
 class CUDAClient{
   public:
-    CUDAClient() : vsock_handle_(VsockHandle(VSOCK_HOST_CID, VSOCK_PORT)){};
+    CUDAClient() : vsock_handle_(VsockHandle(VSOCK_HOST_CID, VSOCK_PORT)),
+                   vgpu_(SHM_PATH, (1 << 20) * sizeof(float)){};
     ~CUDAClient(){};
 
     /**
@@ -48,14 +50,14 @@ class CUDAClient{
      * @brief send guest data to the virtual gpu for later offloading on the host.
      */
     void to_device(const void* data_ptr, size_t data_size){
-        vsock_handle_.transmit(data_ptr, data_size);
+        vgpu_.to_device(data_ptr, data_size);
     }
 
     /**
      * @brief read data from vsock to get data from the virtual gpu.
      */
     void from_device(void* data_ptr, size_t data_size){
-        vsock_handle_.receive(data_ptr, data_size);
+        vgpu_.from_device(data_ptr, data_size);
     }
 
     uint64_t get_scalar_result() { return response_.cuscalar(); };
@@ -63,6 +65,7 @@ class CUDAClient{
     void close() { vsock_handle_.close_socket(); };
   private:
     VsockHandle vsock_handle_;
+    VirtualGPU vgpu_;
     Response response_;
     Serializer serializer_;
 };
