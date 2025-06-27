@@ -17,16 +17,14 @@
 
 #define SHM_PATH "/dev/shm/shared_mem"
 #define SHM_SIZE (1 << 20) * sizeof(float)
-#define ADD_SYMBOL(symbol) {SYMBOL_TO_STR(symbol), [this]() { this->symbol##_handler(); }}
+#define ADD_SYMBOL(symbol) {SYMBOL_TO_STR(symbol), [this]() { CUDA_API_IMPL(symbol) }}
 /* generate the corresponding cuda function with arguments stored in shared memory. */
 #define CUDA_API_IMPL(symbol) \
-void symbol##_handler(){ \
     std::cout << "<<<<<<<<<<implemented as " << #symbol << std::endl; \
     using param_t = FunctionTraits<decltype(symbol)>::ParameterTuple;  \
     param_t args; deserializer_ >> args;  \
     CUresult result = std::apply(symbol, args);                \
     response_.set_curesult(result);                              \
-}
 
 /**
  * @class GPUinstance
@@ -86,11 +84,9 @@ class GPUInstance{
 
     void implement_cuda_function();
 
-    CUDA_API_IMPL(cuMemFree)
-    CUDA_API_IMPL(cuModuleUnload)
-
   private:
     std::unordered_map<std::string, std::function<void()>> func_map = {
+      ADD_SYMBOL(cuInit),
       ADD_SYMBOL(cuMemFree),
       ADD_SYMBOL(cuModuleUnload)
     };
