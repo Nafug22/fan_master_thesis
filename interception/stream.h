@@ -106,6 +106,13 @@ class Response {
     Response& operator>>(T &content){
       if constexpr (is_cuda_type<T>){
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
+      } else if constexpr (std::is_same<T, char*>::value || std::is_same<T, const char*>::value){
+        //!* is it possible for a char vector to be processed as function input?
+        size_t len;
+        std::memcpy(&len, return_buffer_, sizeof(size_t));
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(size_t));
+        std::memcpy(content, return_buffer_, sizeof(char) * len);
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(char) * len);
       } else if constexpr (std::is_pointer<T>::value){
         std::memcpy(content, return_buffer_, sizeof(std::remove_pointer_t<T>));
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
@@ -120,6 +127,12 @@ class Response {
     Response& operator<<(const T &content){
       if constexpr (is_cuda_type<T>){
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
+      } else if constexpr (std::is_same<T, char*>::value){
+        size_t len = std::strlen(content) + 1; // add the terminator
+        std::memcpy(return_buffer_, &len, sizeof(size_t));
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(size_t));
+        std::memcpy(return_buffer_, content, sizeof(char) * len);
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(char) * len);
       } else if constexpr (std::is_pointer<T>::value){
         std::memcpy(return_buffer_, content, sizeof(std::remove_pointer_t<T>));
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
