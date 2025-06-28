@@ -21,6 +21,15 @@
 #define GPU_SIZE 10000
 #define VGPU_FILE "/dev/vdb"
 
+/* Data types defined by CUDA that should be processed as non-ptr. */
+template <typename T>
+constexpr bool is_cuda_type = std::disjunction_v<
+  std::is_same<T, CUcontext>,
+  std::is_same<T, CUmodule>,
+  std::is_same<T, CUstream>,
+  std::is_same<T, CUlibrary>,
+  std::is_same<T, CUevent>
+>;
 /**
  * @class VsockHandle
  * @brief vsock socket management for a client with corresponding cid and port.
@@ -84,7 +93,8 @@ class Response {
   public:
     Response() : mdata_(std::malloc(msize_)),
                  curesult_buffer_(reinterpret_cast<CUresult*>(mdata_)),
-                 scalar_result_buffer_(reinterpret_cast<uint64_t*>(curesult_buffer_ + 1)){};
+                 scalar_result_buffer_(reinterpret_cast<uint64_t*>(curesult_buffer_ + 1)),
+                 return_buffer_(reinterpret_cast<void*>(scalar_result_buffer_)){};
     ~Response(){ free(mdata_); };
 
     CUresult curesult() { return *curesult_buffer_; };
@@ -92,14 +102,46 @@ class Response {
     void set_curesult(CUresult curesult) { *curesult_buffer_ = curesult; };
     void set_cuscalar(uint64_t cuscalar) { *scalar_result_buffer_ = cuscalar; };
 
+    template <typename T>
+    Response& operator>>(T &content){
+      if constexpr (is_cuda_type<T>){
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
+      } else if constexpr (std::is_pointer<T>::value){
+        std::memcpy(content, return_buffer_, sizeof(std::remove_pointer_t<T>));
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
+      } else {
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
+      }
+
+      return *this;
+    }
+
+    template <typename T>
+    Response& operator<<(const T &content){
+      if constexpr (is_cuda_type<T>){
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
+      } else if constexpr (std::is_pointer<T>::value){
+        std::memcpy(return_buffer_, content, sizeof(std::remove_pointer_t<T>));
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
+      } else {
+        std::memcpy(return_buffer_, &content, sizeof(T));
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
+      }
+
+      return *this;
+    }
+
+    void reset() { return_buffer_ = (void*)scalar_result_buffer_; };
+
     void* data() { return mdata_; };
     static size_t size() { return msize_; };
 
   private:
-    static const size_t msize_ = sizeof(CUresult) + sizeof(uint64_t);
+    static const size_t msize_ = sizeof(CUresult) + 100 * sizeof(uint64_t);
     void* mdata_;
     CUresult *curesult_buffer_;
     uint64_t *scalar_result_buffer_;
+    void *return_buffer_;
 };
 
 /**

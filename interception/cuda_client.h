@@ -35,6 +35,8 @@ class CUDAClient{
 
         vsock_handle_.transmit(serializer_.data(), serializer_.size());
         serializer_.clean();
+
+        // CUresult result = wait_recv();
     }
 
     /**
@@ -43,6 +45,14 @@ class CUDAClient{
      */
     CUresult wait_recv(){
         vsock_handle_.receive(response_.data(), response_.size());
+        return response_.curesult();
+    }
+
+    template <typename... Args>
+    CUresult wait_recv(Args... args){
+        vsock_handle_.receive(response_.data(), response_.size());
+        (response_ >> ... >> args);
+        response_.reset();
         return response_.curesult();
     }
 
