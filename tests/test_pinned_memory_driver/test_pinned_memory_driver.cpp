@@ -40,6 +40,9 @@ int main() {
         h_B[i] = static_cast<float>(2 * i);
     }
 
+    std::cout << "h_A[0] = " << h_A[0] << std::endl;
+    std::cout << "h_B[0] = " << h_B[0] << std::endl;
+
     // Allocate device memory
     CUdeviceptr d_A, d_B, d_C;
     CHECK_CUDA(cuMemAlloc(&d_A, size));
@@ -69,6 +72,7 @@ int main() {
                               0, 0,
                               args, 0));
 
+    std::cout << "kernel finished" << std::endl;
     // CHECK_CUDA(cuCtxSynchronize());
 
     // Copy result back to host
@@ -84,9 +88,9 @@ int main() {
     cuMemFree(d_B);
     cuMemFree(d_C);
 
-    cuMemFreeHost(h_A);
-    cuMemFreeHost(h_B);
-    cuMemFreeHost(h_C);
+    // cuMemFreeHost(h_A);
+    // cuMemFreeHost(h_B);
+    // cuMemFreeHost(h_C);
 
     cuModuleUnload(module);
     cuCtxDestroy(context);
