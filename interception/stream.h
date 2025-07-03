@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <string>
 #include <fstream>
-
+#include <unordered_map>
 #include <sys/socket.h>
 #include <linux/vm_sockets.h>
 
@@ -28,7 +28,8 @@ constexpr bool is_cuda_type = std::disjunction_v<
   std::is_same<T, CUmodule>,
   std::is_same<T, CUstream>,
   std::is_same<T, CUlibrary>,
-  std::is_same<T, CUevent>
+  std::is_same<T, CUevent>,
+  std::is_same<T, CUfunction>
 >;
 /**
  * @class VsockHandle
@@ -106,13 +107,17 @@ class Response {
     Response& operator>>(T &content){
       if constexpr (is_cuda_type<T>){
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(T));
-      } else if constexpr (std::is_same<T, char*>::value || std::is_same<T, const char*>::value){
+      } else if constexpr (std::is_same<T, char*>::value){
         //!* is it possible for a char vector to be processed as function input?
         size_t len;
         std::memcpy(&len, return_buffer_, sizeof(size_t));
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(size_t));
         std::memcpy(content, return_buffer_, sizeof(char) * len);
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(char) * len);
+      } else if constexpr (std::is_same<T, void*>::value ||
+                           std::is_same<T, const char*>::value ||
+                           std::is_same<T, const void*>::value) {
+
       } else if constexpr (std::is_pointer<T>::value){
         std::memcpy(content, return_buffer_, sizeof(std::remove_pointer_t<T>));
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
@@ -133,6 +138,8 @@ class Response {
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(size_t));
         std::memcpy(return_buffer_, content, sizeof(char) * len);
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(char) * len);
+      } else if constexpr (std::is_same<T, void*>::value) {
+        //todo check what to do for void type
       } else if constexpr (std::is_pointer<T>::value){
         std::memcpy(return_buffer_, content, sizeof(std::remove_pointer_t<T>));
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
@@ -142,6 +149,12 @@ class Response {
       }
 
       return *this;
+    }
+
+    template <typename... Args>
+    Response& operator>>(std::tuple<Args...> &args){
+        deserialize_tuple(args, std::index_sequence_for<Args...>{});
+        return *this;
     }
 
     void reset() { return_buffer_ = (void*)scalar_result_buffer_; };
@@ -155,6 +168,11 @@ class Response {
     CUresult *curesult_buffer_;
     uint64_t *scalar_result_buffer_;
     void *return_buffer_;
+
+    template <typename Tuple, size_t... I>
+    void deserialize_tuple(Tuple &tuple, std::index_sequence<I...>){
+        (operator>>(std::get<I>(tuple)), ...);
+    }
 };
 
 /**
@@ -305,6 +323,59 @@ class Deserializer {
     }
 };
 
+class PinnedMemory {
+  public:
+    PinnedMemory(const char* shm_path, size_t mem_size)
+        : alloc_pos_(0), pin_size_(mem_size){
+        fd_ = open(shm_path, O_RDWR | O_SYNC | O_DIRECT);
+        if (fd_ < 0) std::cerr << "Failed to open shared memory file\n";
+        pin_start_ = mmap(NULL, mem_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_SYNC, fd_, 0);
+        if (pin_start_ == MAP_FAILED) {
+            perror("mmap");
+            exit(1);
+        }
+    }
+    ~PinnedMemory(){
+        if (munmap(pin_start_, pin_size_) == -1) {
+          perror("munmap");
+        }
+        close(fd_);
+    }
+
+    void* register_pinned_memory(size_t byte_size){
+        void* ret = (char*)pin_start_ + alloc_pos_;
+        alloc_pos_ += byte_size;
+        hashmap[ret] = byte_size;
+        return ret;
+    }
+
+    void sync(const void* ptr) { msync((void*)ptr, hashmap[(void*)ptr], MS_SYNC); }
+    void* get() { return pin_start_; }
+    void remap() {
+        if (munmap(pin_start_, pin_size_) == -1) perror("munmap");
+        close(fd_);
+        fd_ = open("/dev/vdd", O_RDWR | O_SYNC | O_DIRECT);
+        if (fd_ < 0) std::cerr << "Failed to open shared memory file\n";
+        pin_start_ = mmap(pin_start_, pin_size_, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_SYNC | MAP_FIXED, fd_, 0);
+        if (pin_start_ == MAP_FAILED) {
+            perror("mmap");
+            exit(1);
+        }
+    }
+
+    bool is_pinned(void* ptr) { return ptr >= pin_start_ && (char*)ptr <= (char*)pin_start_ + pin_size_; }
+    bool is_pinned(const void* ptr) { return ptr >= pin_start_ && (char*)ptr <= (char*)pin_start_ + pin_size_; }
+
+  private:
+    size_t alloc_pos_;
+
+    int fd_;
+    void* pin_start_;
+    size_t pin_size_;
+    std::string shm_path;
+    std::unordered_map<void*, size_t> hashmap;
+};
+
 // deprecated due to unknown cache coherency issues
 class VirtualGPU {
   public:
@@ -319,11 +390,10 @@ class VirtualGPU {
       sync(byte_size);
     }
     void from_device(void* data_ptr, size_t byte_size) {
-      // lseek(fd_, 0, SEEK_SET);
-      // read(fd_, data_ptr, byte_size);
-      close_vgpu();
-      initialize_vgpu(VGPU_FILE);
+      std::cout << "vgpu_ptr_ = " << vgpu_ptr_ << std::endl;
+      remap();
       memcpy(data_ptr, vgpu_ptr_, byte_size);
+      std::cout << "vgpu_ptr_ = " << vgpu_ptr_ << std::endl;
     }
 
     void* get() { return vgpu_ptr_; };
@@ -345,7 +415,18 @@ class VirtualGPU {
       }
       close(fd_);
     };
-    // void close_vgpu(){};
+    
+    void remap(){
+      if(munmap(vgpu_ptr_, vgpu_size_) == -1) perror("munmap");
+      close(fd_);
+      fd_ = open(VGPU_FILE, O_RDWR | O_SYNC | O_DIRECT);
+      if (fd_ < 0) std::cerr << "Failed to open shared memory file\n";
+      vgpu_ptr_ = mmap(vgpu_ptr_, vgpu_size_, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_SYNC, fd_, 0);
+      if (vgpu_ptr_ == MAP_FAILED) {
+          perror("mmap");
+          exit(1);
+      }
+    }
 
     int fd_;
     void* vgpu_ptr_;

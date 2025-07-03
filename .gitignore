@@ -4,8 +4,8 @@
 grpc_generated/
 build/
 Testing/
-tests/
 logs/
 untrack/
 gpu_instance/
 .vscode/
+tests/*.*

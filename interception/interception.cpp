@@ -13,32 +13,15 @@ static void *real_dlsym(void *handle, const char *symbol) {
   return (*internal_dlsym)(handle, symbol);
 }
 //==================================================================================================================
-/* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
-void *dlsym(void *handle, const char *symbol) {
-  // for CUDA func
-  if(strcmp(symbol, SYMBOL_TO_STR(cuGetProcAddress)) == 0){
-    printf("intercepted: %s\n", symbol);
-    // return (void *) &getProcAddressBySymbol;
-  }
 
-  // for all other func
-  return (real_dlsym(handle, symbol));
-}
 //==================================================================================================================
-/* Interception version for `cuGetProcAddress` and all needed CUDA funcs */
-extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int cudaVersion, cuuint64_t flags,
-                                           CUdriverProcAddressQueryResult* symbolStatus) {
-  // printf("Intercepted cuGetProcAddress: symbol=%s\n", symbol);
-  if(strcmp(symbol, "cuGetProcAddress") == 0){
-    *pfn = (void *) &getProcAddressBySymbol;
-    return CUDA_SUCCESS;
+#define TRY_INTERCEPT(name, handler) \
+  if(strcmp(symbol, name) == 0){ \
+    *pfn = (void*) &handler; \
+    return CUDA_SUCCESS;\
   }
+//==================================================================================================================
 
-  // If no need to intercept, call the corresponding CUDA function directly
-  CUresult result = cuGetProcAddress_v2(symbol, pfn, cudaVersion, flags, symbolStatus);
-
-  return result;
-}
 //==================================================================================================================
 /* Macro used to generate hooks to CUDA driver functions (that need to be intercepted) */
 #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
@@ -54,31 +37,90 @@ extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int c
 #define CU_HOOK_REMOTE(symbol, params, ...) \
   extern "C" CUresult CUDAAPI symbol params{  \
     client.CallCudaFunction(__func__, __VA_ARGS__); \
-    return client.wait_recv(); \
+    return client.wait_recv(__VA_ARGS__); \
   }
 //==================================================================================================================
-//currently no work to do, CUDA will only be initialized on the host
-extern "C" CUresult CUDAAPI cuInit(unsigned int Flags){ return CUDA_SUCCESS; };
-extern "C" CUresult CUDAAPI cuDeviceGet(CUdevice* device, int ordinal){ return CUDA_SUCCESS; };
-extern "C" CUresult CUDAAPI cuCtxCreate(CUcontext* pctx, unsigned int flags, CUdevice dev){ return CUDA_SUCCESS; };
-//currently no work to do, context is managed by the host
-extern "C" CUresult CUDAAPI cuCtxDestroy(CUcontext ctx){
-  client.CallCudaFunction(__func__);
-  client.wait_recv();
-  client.close();
-  return CUDA_SUCCESS;
-}
+CU_HOOK_REMOTE((cuInit), (unsigned int Flags), Flags)
+CU_HOOK_REMOTE((cuDevicePrimaryCtxRelease), (CUdevice dev), dev)
+CU_HOOK_REMOTE((cuCtxSetCurrent), (CUcontext ctx), ctx)
+CU_HOOK_REMOTE((cuCtxPushCurrent), (CUcontext ctx), ctx)
+CU_HOOK_REMOTE((cuLibraryUnload), (CUlibrary library), library)
+CU_HOOK_REMOTE((cuMemsetD8Async), (CUdeviceptr dstDevice, unsigned char uc, size_t N, CUstream hStream), dstDevice, uc, N, hStream)
+CU_HOOK_REMOTE((cuEventRecord), (CUevent hEvent, CUstream hStream), hEvent, hStream)
+CU_HOOK_REMOTE((cuStreamSynchronize), (CUstream hStream), hStream)
+CU_HOOK_REMOTE((cuCtxDestroy), (CUcontext ctx), ctx)
+CU_HOOK_REMOTE((cuMemFree), (CUdeviceptr dptr), dptr)
+CU_HOOK_REMOTE((cuModuleUnload), (CUmodule hmod), hmod)
+
+
+CU_HOOK_REMOTE((cuDeviceGet), (CUdevice *device, int ordinal), device, ordinal)
+CU_HOOK_REMOTE((cuCtxCreate), (CUcontext* pctx, unsigned int flags, CUdevice dev), pctx, flags, dev)
+CU_HOOK_REMOTE((cuDeviceGetCount), (int *count), count)
+#undef cuDeviceTotalMem
+CU_HOOK_REMOTE((cuDeviceTotalMem), (unsigned int *bytes, CUdevice dev), bytes, dev)
+CU_HOOK_REMOTE((cuDeviceGetAttribute), (int *pi, CUdevice_attribute attrib, CUdevice dev), pi, attrib, dev)
+CU_HOOK_REMOTE((cuDriverGetVersion), (int *driverVersion), driverVersion)
+CU_HOOK_REMOTE((cuDeviceGetUuid), (CUuuid *uuid, CUdevice dev), uuid, dev)
+CU_HOOK_REMOTE((cuDevicePrimaryCtxRetain), (CUcontext *pctx, CUdevice dev), pctx, dev)
+CU_HOOK_REMOTE((cuCtxGetCurrent), (CUcontext *pctx), pctx)
+CU_HOOK_REMOTE((cuCtxGetDevice), (CUdevice *device), device)
+CU_HOOK_REMOTE((cuCtxGetStreamPriorityRange), (int *leastPriority, int *greatestPriority), leastPriority, greatestPriority)
+CU_HOOK_REMOTE((cuCtxPopCurrent), (CUcontext *pctx), pctx)
+CU_HOOK_REMOTE((cuModuleGetLoadingMode), (CUmoduleLoadingMode *mode), mode)
+CU_HOOK_REMOTE((cuLibraryGetModule), (CUmodule *pMod, CUlibrary library), pMod, library)
+CU_HOOK_REMOTE((cuMemHostGetDevicePointer), (CUdeviceptr *pdptr, void *p, unsigned int Flags), pdptr, p, Flags)
+CU_HOOK_REMOTE((cuEventCreate), (CUevent *phEvent, unsigned int Flags), phEvent, Flags)
+CU_HOOK_REMOTE((cuStreamCreate), (CUstream *phStream, unsigned int Flags), phStream, Flags)
+CU_HOOK_REMOTE((cuDeviceGetName), (char *name, int len, CUdevice dev), name, len, dev)
+#undef cuModuleGetGlobal
+CU_HOOK_REMOTE((cuModuleGetGlobal), (CUdeviceptr *dptr, unsigned int *bytes, CUmodule hmod, const char *name), dptr, bytes, hmod, name)
+CU_HOOK_REMOTE((cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags), (int *numBlocks, CUfunction func, int blockSize, size_t dynamicSMemSize, unsigned int flags), numBlocks, func, blockSize, dynamicSMemSize, flags)
+/* `cuGetExportTable` is not included in the official CUDA api calls.
+ * Check http://forums.developer.nvidia.com/t/cugetexporttable-explanation/259109 to get some info.
+*/
+// CU_HOOK_REMOTE((cuGetExportTable), (const void **ppExportTable, const CUuuid *pExportTableId), ppExportTable, pExportTableId)
 //==================================================================================================================
-extern "C" CUresult CUDAAPI cuMemAlloc(CUdeviceptr* dptr, size_t bytesize){
-    client.CallCudaFunction(__func__, dptr, bytesize);
-    CUresult result = client.wait_recv();
-    *dptr = client.get_scalar_result();
+extern "C" CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTableId){
+    client.CallCudaFunction(__func__, *pExportTableId);
+    CUresult result = client.wait_recv(ppExportTable);
 
     return result;
 }
 //==================================================================================================================
+//todo where is the data in srchost located?
+extern "C" CUresult CUDAAPI cuMemcpyHtoDAsync(CUdeviceptr dstDevice, const void *srcHost, unsigned int ByteCount, CUstream hStream){
+    pinned_memory.sync(srcHost);
+    client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount, hStream);
+    CUresult result = client.wait_recv();
+
+    return result;
+}
+//==================================================================================================================
+//todo 
+// extern "C" CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTableId){
+//   client.CallCudaFunction(__func__, ppExportTable, pExportTableId);
+//   CUresult result = client.wait_recv();
+//   *priority = client.get_scalar_result();
+
+//   return result;
+// }
+//==================================================================================================================
+CU_HOOK_REMOTE((cuStreamIsCapturing), (CUstream hStream, CUstreamCaptureStatus *captureStatus), hStream, captureStatus)
+CU_HOOK_REMOTE((cuStreamGetPriority), (CUstream hStream, int *priority), hStream, priority)
+CU_HOOK_REMOTE((cuMemAlloc), (CUdeviceptr* dptr, size_t bytesize), dptr, bytesize)
+//==================================================================================================================
+extern "C" CUresult CUDAAPI cuMemHostAlloc(void **pp, size_t bytesize, unsigned int Flags){
+    //! [todo] there would be waste for the allocated memory on the microvm
+    std::cout << "cumemhostalloc invoked" << std::endl;
+    *pp = pinned_memory.register_pinned_memory(bytesize);
+    client.CallCudaFunction(__func__, *pp, bytesize, Flags);
+    CUresult result = client.wait_recv();
+    return result;
+}
+//==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
-    client.to_device(srcHost, ByteCount);
+    if(pinned_memory.is_pinned(srcHost)) pinned_memory.sync(srcHost), std::cout << "the ptr is pinned at " << srcHost << std::endl;
+    else client.to_device(srcHost, ByteCount);
     client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount);
     CUresult result = client.wait_recv();
     return result;
@@ -87,7 +129,8 @@ extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcH
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     client.CallCudaFunction(__func__, dstHost, srcDevice, ByteCount);
     CUresult result = client.wait_recv();
-    client.from_device(dstHost, ByteCount);
+    if(pinned_memory.is_pinned(dstHost)) pinned_memory.remap();
+    else client.from_device(dstHost, ByteCount);
     return result;
 }
 //==================================================================================================================
@@ -137,8 +180,68 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
     return result;
 }
 //==================================================================================================================
-CU_HOOK_REMOTE(cuMemFree, (CUdeviceptr dptr), dptr)
-CU_HOOK_REMOTE(cuModuleUnload, (CUmodule hmod), hmod)
+/* Interception version for `cuGetProcAddress` and all needed CUDA funcs */
+extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int cudaVersion, cuuint64_t flags,
+                                            CUdriverProcAddressQueryResult* symbolStatus) {
+  // printf("Intercepted cuGetProcAddress: symbol=%s\n", symbol);
+  if(strcmp(symbol, "cuGetProcAddress") == 0){
+  *pfn = (void *) &getProcAddressBySymbol;
+  return CUDA_SUCCESS;
+  }
+  TRY_INTERCEPT("cuInit", cuInit)
+  TRY_INTERCEPT("cuDriverGetVersion", cuDriverGetVersion)
+  TRY_INTERCEPT("cuGetExportTable", cuGetExportTable)
+  TRY_INTERCEPT("cuModuleGetLoadingMode", cuModuleGetLoadingMode)
+  TRY_INTERCEPT("cuDeviceGetCount", cuDeviceGetCount)
+  TRY_INTERCEPT("cuDeviceGet", cuDeviceGet)
+  TRY_INTERCEPT("cuDeviceGetName", cuDeviceGetName)
+  TRY_INTERCEPT("cuDeviceTotalMem", cuDeviceTotalMem)
+  TRY_INTERCEPT("cuDeviceGetAttribute", cuDeviceGetAttribute)
+  TRY_INTERCEPT("cuDeviceGetUuid", cuDeviceGetUuid)
+  TRY_INTERCEPT("cuCtxGetDevice", cuCtxGetDevice)
+  TRY_INTERCEPT("cuCtxGetCurrent", cuCtxGetCurrent)
+  TRY_INTERCEPT("cuCtxSetCurrent", cuCtxSetCurrent)
+  TRY_INTERCEPT("cuDevicePrimaryCtxRetain", cuDevicePrimaryCtxRetain)
+  TRY_INTERCEPT("cuCtxGetStreamPriorityRange", cuCtxGetStreamPriorityRange)
+  TRY_INTERCEPT("cuStreamIsCapturing", cuStreamIsCapturing)
+  TRY_INTERCEPT("cuMemAlloc", cuMemAlloc)
+  TRY_INTERCEPT("cuMemcpyHtoDAsync", cuMemcpyHtoDAsync)
+  TRY_INTERCEPT("cuStreamSynchronize", cuStreamSynchronize)
+  TRY_INTERCEPT("cuStreamCreate", cuStreamCreate)
+  TRY_INTERCEPT("cuMemsetD8Async", cuMemsetD8Async)
+  TRY_INTERCEPT("cuEventCreate", cuEventCreate)
+  TRY_INTERCEPT("cuMemHostAlloc", cuMemHostAlloc)
+  TRY_INTERCEPT("cuMemHostGetDevicePointer", cuMemHostGetDevicePointer)
+  TRY_INTERCEPT("cuMemFree", cuMemFree)
+  TRY_INTERCEPT("cuEventRecord", cuEventRecord)
+  TRY_INTERCEPT("cuStreamGetPriority", cuStreamGetPriority)
+  TRY_INTERCEPT("cuCtxPushCurrent", cuCtxPushCurrent)
+  TRY_INTERCEPT("cuLibraryGetModule", cuLibraryGetModule)
+  TRY_INTERCEPT("cuCtxPopCurrent", cuCtxPopCurrent)
+  TRY_INTERCEPT("cuModuleGetFunction", cuModuleGetFunction)
+  TRY_INTERCEPT("cuLaunchKernel", cuLaunchKernel)
+  TRY_INTERCEPT("cuModuleGetGlobal", cuModuleGetGlobal)
+  TRY_INTERCEPT("cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags", cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags)
+  TRY_INTERCEPT("cuLibraryUnload", cuLibraryUnload)
+  TRY_INTERCEPT("cuDevicePrimaryCtxRelease", cuDevicePrimaryCtxRelease)
+
+  // If no need to intercept, call the corresponding CUDA function directly
+  CUresult result = cuGetProcAddress_v2(symbol, pfn, cudaVersion, flags, symbolStatus);
+
+  return result;
+}
+//==================================================================================================================
+/* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
+void *dlsym(void *handle, const char *symbol) {
+  // for CUDA func
+  if(strcmp(symbol, SYMBOL_TO_STR(cuGetProcAddress)) == 0){
+    printf("intercepted: %s\n", symbol);
+    return (void *) &getProcAddressBySymbol;
+  }
+
+  // for all other func
+  return (real_dlsym(handle, symbol));
+}
 //==================================================================================================================
 // #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
 //   extern "C" CUresult CUDAAPI symbol params {   \

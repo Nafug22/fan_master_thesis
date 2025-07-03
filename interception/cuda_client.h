@@ -45,6 +45,7 @@ class CUDAClient{
      */
     CUresult wait_recv(){
         vsock_handle_.receive(response_.data(), response_.size());
+        response_.reset();
         return response_.curesult();
     }
 

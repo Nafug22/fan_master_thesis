@@ -25,6 +25,7 @@
     param_t args; deserializer_ >> args;  \
     CUresult result = std::apply(symbol, args);                \
     response_.set_curesult(result);                              \
+    response_ << args;
 
 /**
  * @class GPUinstance
@@ -36,13 +37,19 @@
  */
 class GPUInstance{
   public:
-    explicit GPUInstance(int device_id, int client_fd) : client_fd_(client_fd), vgpu_(SHM_PATH, (1 << 20) * sizeof(float)), vgpu_ptr_(vgpu_.get())
+    explicit GPUInstance(int device_id, int client_fd)
+        : client_fd_(client_fd),
+          vgpu_(SHM_PATH, (1 << 20) * sizeof(float)),
+          vgpu_ptr_(vgpu_.get()),
+          pinned_memory_("/dev/shm/cuda_pin", SHM_SIZE * 5),
+          client_pin_start_(nullptr)
     {
         cuDeviceGet(&device_, device_id);
         cuCtxCreate(&cucontext_, 0, device_);
     }
     ~GPUInstance() {
         cuCtxDestroy(cucontext_);
+        for(auto p : registered_) cuMemHostUnregister(p);
         if(client_fd_ != -1) printf("the client fd is closed gracefully\n"), close(client_fd_);
     };
 
@@ -59,6 +66,9 @@ class GPUInstance{
     std::vector<std::unique_ptr<CUdeviceptr>> device_ptrs_;
     std::vector<std::unique_ptr<CUmodule>> cumodules_;
     std::vector<std::unique_ptr<CUfunction>> cufuncs_;
+    std::vector<std::unique_ptr<CUdevice>> cudevices_;
+    std::vector<std::unique_ptr<CUcontext>> cuctxs_;
+    std::vector<std::unique_ptr<void*>> hdata_ptrs_;
 
     CUdevice device_;
     CUcontext cucontext_;
@@ -71,7 +81,18 @@ class GPUInstance{
     }
     VirtualGPU vgpu_;
     void* vgpu_ptr_;
+    PinnedMemory pinned_memory_;
+    void* client_pin_start_;
 
+    std::vector<void*> registered_;
+    bool is_pinned(void* ptr) {
+        return (uintptr_t)ptr >= (uintptr_t)client_pin_start_ &&
+               (uintptr_t)ptr <= (uintptr_t)client_pin_start_ + SHM_SIZE * 5;
+    }
+    void* convert_pin(void* ptr) {
+        auto offset = (uintptr_t)ptr - (uintptr_t)client_pin_start_;
+        return (char*)pinned_memory_.get() + offset;
+    }
   private:
     Deserializer deserializer_;
     char* pull_command(){
@@ -83,12 +104,24 @@ class GPUInstance{
     }
 
     void implement_cuda_function();
-
+    void resolve_cuda_error(CUresult &result){
+        const char* name = nullptr;
+        cuGetErrorName(result, &name);
+        std::cout << "the error should be " << name << std::endl;
+    }
   private:
     std::unordered_map<std::string, std::function<void()>> func_map = {
       ADD_SYMBOL(cuInit),
+      ADD_SYMBOL(cuDevicePrimaryCtxRelease),
+      ADD_SYMBOL(cuCtxSetCurrent),
+      ADD_SYMBOL(cuCtxPushCurrent),
+      ADD_SYMBOL(cuLibraryUnload),
+      ADD_SYMBOL(cuMemsetD8Async),
+      ADD_SYMBOL(cuEventRecord),
+      ADD_SYMBOL(cuStreamSynchronize),
+      ADD_SYMBOL(cuCtxDestroy),
       ADD_SYMBOL(cuMemFree),
-      ADD_SYMBOL(cuModuleUnload)
+      ADD_SYMBOL(cuModuleUnload),
     };
 };
 
