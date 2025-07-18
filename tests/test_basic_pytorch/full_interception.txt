@@ -1,0 +1,1674 @@
+[Intercepted] cudaGetDeviceCount
+intercepted: cuGetProcAddress_v2
+Intercepted execution: cuDriverGetVersion
+Intercepted execution: cuInit
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuModuleGetLoadingMode
+Intercepted execution: cuDeviceGetCount
+Intercepted execution: cuDeviceGet
+Intercepted execution: cuDeviceGetName
+Intercepted execution: cuDeviceTotalMem_v2
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted [Intercepted] cudaGetDeviceCount
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDeviceCount
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDeviceProperties
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaDeviceGetStreamPriorityRange
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamIsCapturing
+[Intercepted] cudaMalloc
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamIsCapturing
+[Intercepted] cudaMalloc
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetUuid
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuCtxSetCurrent
+Intercepted execution: cuDevicePrimaryCtxRetain
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetStreamPriorityRange
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGet[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamIsCapturing
+[Intercepted] cudaMalloc
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamIsCapturing
+[Intercepted] cudaMalloc
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+Device
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGe[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamIsCapturing
+[Intercepted] cudaMalloc
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaStreamSynchronize
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+tDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemcpyHtoDAsync_v2
+Intercepted execution: cuStreamSynchronize
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+intercepted: cuGetProcAddress_v2
+Intercepted execution: cuDriverGetVersion
+Intercepted execution: cuInit
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuModuleGetLoadingMode
+Intercepted execution: cuDeviceGetCount
+Intercepted execution: cuDeviceGet
+Intercepted execution: cuDeviceGetName
+Intercepted execution: cuDeviceTotalMem_v2
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetUuid
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuDevicePrimaryCtxRetain
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuStreamCreate
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuMemsetD8Async
+Intercepted execution: cuEventCreate
+Intercepted execution: cuMemHostAlloc
+Intercepted execution: cuMemHostGetDevicePointer_v2
+Intercepted execution: cuMemFree_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuEventRecord
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuStreamGetPriority
+Intercepted execution: cuCtxGetStreamPriorityRange
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+intercepted: cuGetProcAddress_v2
+Intercepted execution: cuDriverGetVersion
+Intercepted execution: cuInit
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuModuleGetLoadingMode
+Intercepted execution: cuDeviceGetCount
+Intercepted execution: cuDeviceGet
+Intercepted execution: cuDeviceGetName
+Intercepted execution: cuDeviceTotalMem_v2
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttr[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+ibute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetUuid
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuDevicePrimaryCtxRetain
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted executio[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+n: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuEventRecord
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuStreamGetPriority
+Intercepted execution: cuCtxGetStreamPriorityRange
+Intercepted execution: cuCtxGetDevice
+intercepted: cuGetProcAddress_v2
+Intercepted execution: cuDriverGetVersion
+Intercepted execution: cuInit
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuModuleGetLoadingMode
+Intercepted execution: cuDeviceGetCount
+Intercepted execution: cuDeviceGet
+Intercepted execution: cuDeviceGetName
+Intercepted execution: cuDeviceTotalMem_v2
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetA[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+ttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetUuid
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuDevicePrimaryCtxRetain
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemFree_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetGlobal_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted [Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuEventRecord
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuStreamGetPriority
+Intercepted execution: cuCtxGetStreamPriorityRange
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuEventRecord
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuStreamGetPriority
+Intercepted execution: cuCtxGetStreamPriorityRange
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Interc[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+epted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuEventRecord
+Intercepted execution: cuStreamIsCapturing
+Intercepted execution: cuStreamGetPriority
+Intercepted execution: cuCtxGetStreamPriorityRange
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+intercepted: cuGetProcAddress_v2
+Intercepted execution: cuDriverGetVersion
+Intercepted execution: cuInit
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuModuleGetLoadingMode
+Intercepted execution: cuDeviceGetCount
+Intercepted execution: cuDeviceGet
+Intercepted execution: cuDeviceGetName
+Intercepted execution: cuDeviceTotalMem_v2
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetUuid
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuDeviceGetAttribute
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuDevicePrimaryCtxRetain
+Intercepted execution: cuCtxGetCurrent
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemFree_v2
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cu[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaLaunchKernel
+[Intercepted] cudaGetLastError
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+[Intercepted] cudaGetDevice
+Output shape: torch.Size([1, 1000])
+Model is on: cuda:0
+Input is on: cuda:0
+CUDA available: True
+EventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuMemAlloc_v2
+Intercepted execution: cuEventCreate
+Intercepted execution: cuEventCreate
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuGetExportTable
+Intercepted execution: cuCtxPushCurrent_v2
+Intercepted execution: cuLibraryGetModule
+Intercepted execution: cuCtxPopCurrent_v2
+Intercepted execution: cuModuleGetFunction
+Intercepted execution: cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLaunchKernel
+Intercepted execution: cuCtxGetDevice
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuDevicePrimaryCtxRelease_v2
+Intercepted execution: cuDevicePrimaryCtxRelease_v2
+Intercepted execution: cuDevicePrimaryCtxRelease_v2
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuDevicePrimaryCtxRelease_v2
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuLibraryUnload
+Intercepted execution: cuDevicePrimaryCtxRelease_v2
