@@ -117,7 +117,9 @@ class Response {
       } else if constexpr (std::is_same<T, void*>::value ||
                            std::is_same<T, const char*>::value ||
                            std::is_same<T, const void*>::value) {
-
+      } else if constexpr (std::is_same<T, const void**>::value) {
+        *content = (void*)return_buffer_;
+        return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(void*));
       } else if constexpr (std::is_pointer<T>::value){
         std::memcpy(content, return_buffer_, sizeof(std::remove_pointer_t<T>));
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(std::remove_pointer_t<T>));
@@ -138,7 +140,9 @@ class Response {
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(size_t));
         std::memcpy(return_buffer_, content, sizeof(char) * len);
         return_buffer_ = static_cast<void*>(static_cast<char*>(return_buffer_) + sizeof(char) * len);
-      } else if constexpr (std::is_same<T, void*>::value) {
+      } else if constexpr (std::is_same<T, void*>::value ||
+                          std::is_same<T, const char*>::value ||
+                          std::is_same<T, const void*>::value) {
         //todo check what to do for void type
       } else if constexpr (std::is_pointer<T>::value){
         std::memcpy(return_buffer_, content, sizeof(std::remove_pointer_t<T>));
@@ -153,7 +157,13 @@ class Response {
 
     template <typename... Args>
     Response& operator>>(std::tuple<Args...> &args){
-        deserialize_tuple(args, std::index_sequence_for<Args...>{});
+        deserialize_tuple_out(args, std::index_sequence_for<Args...>{});
+        return *this;
+    }
+
+    template <typename... Args>
+    Response& operator<<(std::tuple<Args...> &args){
+        deserialize_tuple_in(args, std::index_sequence_for<Args...>{});
         return *this;
     }
 
@@ -170,8 +180,13 @@ class Response {
     void *return_buffer_;
 
     template <typename Tuple, size_t... I>
-    void deserialize_tuple(Tuple &tuple, std::index_sequence<I...>){
+    void deserialize_tuple_out(Tuple &tuple, std::index_sequence<I...>){
         (operator>>(std::get<I>(tuple)), ...);
+    }
+
+    template <typename Tuple, size_t... I>
+    void deserialize_tuple_in(Tuple &tuple, std::index_sequence<I...>){
+        (operator<<(std::get<I>(tuple)), ...);
     }
 };
 

@@ -6,6 +6,8 @@ from torchvision.models import alexnet, AlexNet_Weights
 # weights = AlexNet_Weights.DEFAULT
 # model = alexnet(weights=weights)
 # model.eval()
+
+
 # model = alexnet()
 # checkpoint = torch.load("/root/alexnet-owt-7be5be79.pth", map_location="cpu")
 # model.load_state_dict(checkpoint)
@@ -23,7 +25,7 @@ input_tensor = torch.randn(1, 3, 224, 224).to(device)
 # with torch.no_grad():
 #     output = model(input_tensor)
 
-print("Output shape:", output.shape)
-print("Model is on:", next(model.parameters()).device)
-print("Input is on:", input_tensor.device)
+# print("Output shape:", output.shape)
+# print("Model is on:", next(model.parameters()).device)
+# print("Input is on:", input_tensor.device)
 print("CUDA available:", torch.cuda.is_available())

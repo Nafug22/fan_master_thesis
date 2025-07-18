@@ -1,5 +1,5 @@
 #include "gpu_instance.h"
-
+#include <cuda_runtime.h>
 #define FUNC_COMP(func_name, symbol) strcmp(func_name, SYMBOL_TO_STR(symbol)) == 0
 
 //======================================================================================//
@@ -323,7 +323,16 @@ void GPUInstance::implement_cuda_function(){
       CUresult result = cuGetExportTable(&ptable, &uuid_);
       response_.set_curesult(result);
       response_ << ptable;
-
+  } else if(FUNC_COMP(function_name, cudaGetDeviceProperties)){
+      std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+      using param_t = FunctionTraits<decltype(cudaGetDeviceProperties)>::ParameterTuple;
+      param_t args; deserializer_ >> args;
+      cudaDeviceProp prop;
+      std::get<0>(args) = &prop;
+      cudaError_t result = std::apply(cudaGetDeviceProperties, args);
+      
+      response_.set_curesult(CUDA_SUCCESS);
+      response_ << args;
   } else if(FUNC_COMP(function_name, cuMemHostGetDevicePointer)){
       std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
         
