@@ -9,3 +9,6 @@ untrack/
 gpu_instance/
 .vscode/
 tests/*.*
+
+shared_files
+Dockerfile
