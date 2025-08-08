@@ -20,7 +20,7 @@
 class CUDAClient{
   public:
     CUDAClient() : vsock_handle_(VsockHandle(VSOCK_HOST_CID, VSOCK_PORT)),
-                   vgpu_(SHM_PATH, 200000){};
+                   vgpu_(SHM_PATH, (1 << 20) * 9){};
     ~CUDAClient(){};
 
     /**
