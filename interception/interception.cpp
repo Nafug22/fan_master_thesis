@@ -3,8 +3,32 @@
 #include <cstring>
 #include <unordered_map>
 #include <unistd.h>
-// #include <cuda_runtime.h>
-
+#include <cuda_runtime.h>
+#include <cassert>
+//==================================================================================================================
+extern "C" cudaError_t cudaGetDeviceCount(int *count) {
+  printf("[Intercepted runtime execution] cudaGetDeviceCount\n");
+  client.CallCudaFunction(__func__);
+  cudaError_t result;
+  client.wait_recv(result, count);
+  return result;
+}
+//==================================================================================================================
+extern "C" cudaError_t cudaGetDevice(int *device) {
+  printf("[Intercepted runtime execution] cudaGetDevice\n");
+  client.CallCudaFunction(__func__);
+  cudaError_t result;
+  client.wait_recv(result, device);
+  return result;
+}
+//==================================================================================================================
+extern "C" cudaError_t cudaGetDeviceProperties(cudaDeviceProp *prop, int device) {
+  printf("[Intercepted runtime execution] cudaGetDeviceProperties\n");
+  client.CallCudaFunction(__func__, device);
+  cudaError_t result;
+  client.wait_recv(result, prop);
+  return result;
+}
 //==================================================================================================================
 /* Get the real `dlsym` handler in `libdl` */
 //FIXME better compatibility for all sys
@@ -45,7 +69,12 @@ void dummy() {printf("this function is not intercepted \n");}
     // CUresult result = real_func(__VA_ARGS__);
 #define CU_HOOK_DRIVER_FUNC(name, symbol, params, ...) \
   extern "C" CUresult CUDAAPI name params {   \
-    printf("Intercepted execution: %s\n", SYMBOL_TO_STR(symbol)); \
+    using symbol##handler = CUresult CUDAAPI (params); \
+    static auto real_func = (symbol##handler *) real_dlsym(RTLD_NEXT, SYMBOL_TO_STR(symbol)); \
+    CUresult result = real_func(__VA_ARGS__); \
+    return result; \
+  }
+    // printf("Intercepted execution: %s\n", SYMBOL_TO_STR(symbol)); \
     return CUDA_SUCCESS;  \
   }
 //==================================================================================================================
@@ -54,8 +83,9 @@ void dummy() {printf("this function is not intercepted \n");}
   extern "C" CUresult CUDAAPI symbol params{  \
     printf("Intercepted execution (redirected): %s\n", __func__); \
     client.CallCudaFunction(__func__, __VA_ARGS__); \
+    CUresult result = client.wait_recv(__VA_ARGS__); \
     printf(">>>> success! \n"); \
-    return client.wait_recv(__VA_ARGS__); \
+    return result; \
   }
 //==================================================================================================================
 // #undef cudaGetDeviceProperties
@@ -78,7 +108,7 @@ CU_HOOK_REMOTE((cuDeviceGet), (CUdevice *device, int ordinal), device, ordinal)
 CU_HOOK_REMOTE((cuCtxCreate), (CUcontext* pctx, unsigned int flags, CUdevice dev), pctx, flags, dev)
 CU_HOOK_REMOTE((cuDeviceGetCount), (int *count), count)
 #undef cuDeviceTotalMem
-CU_HOOK_REMOTE((cuDeviceTotalMem), (unsigned int *bytes, CUdevice dev), bytes, dev)
+CU_HOOK_REMOTE((cuDeviceTotalMem_v2), (size_t *bytes, CUdevice dev), bytes, dev)
 CU_HOOK_REMOTE((cuDeviceGetAttribute), (int *pi, CUdevice_attribute attrib, CUdevice dev), pi, attrib, dev)
 CU_HOOK_REMOTE((cuDriverGetVersion), (int *driverVersion), driverVersion)
 CU_HOOK_REMOTE((cuDeviceGetUuid), (CUuuid *uuid, CUdevice dev), uuid, dev)
@@ -96,10 +126,33 @@ CU_HOOK_REMOTE((cuDeviceGetName), (char *name, int len, CUdevice dev), name, len
 #undef cuModuleGetGlobal
 CU_HOOK_REMOTE((cuModuleGetGlobal), (CUdeviceptr *dptr, unsigned int *bytes, CUmodule hmod, const char *name), dptr, bytes, hmod, name)
 CU_HOOK_REMOTE((cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags), (int *numBlocks, CUfunction func, int blockSize, size_t dynamicSMemSize, unsigned int flags), numBlocks, func, blockSize, dynamicSMemSize, flags)
+
 /* `cuGetExportTable` is not included in the official CUDA api calls.
  * Check http://forums.developer.nvidia.com/t/cugetexporttable-explanation/259109 to get some info.
 */
 // CU_HOOK_REMOTE((cuGetExportTable), (const void **ppExportTable, const CUuuid *pExportTableId), ppExportTable, pExportTableId)
+//==================================================================================================================
+extern "C" CUresult CUDAAPI cuOccupancyMaxPotentialBlockSize(int* minGridSize, int* blockSize, CUfunction func,
+                                                              CUoccupancyB2DSize blockSizeToDynamicSMemSize,
+                                                              size_t dynamicSMemSize, int  blockSizeLimit){
+    printf("Intercepted execution (redirected): %s\n", __func__);
+    client.CallCudaFunction(__func__, minGridSize, blockSize, func, blockSizeToDynamicSMemSize,
+                                      dynamicSMemSize, blockSizeLimit);
+    CUresult result = client.wait_recv(minGridSize, blockSize);
+    printf(">>> success!\n");
+
+    return result;
+}
+//==================================================================================================================
+extern "C" CUresult CUDAAPI cuModuleLoadData(CUmodule *module, const void *image){
+    printf("Intercepted execution (redirected): %s\n", __func__);
+    client.to_device(image, std::strlen((const char*)image));
+    client.CallCudaFunction(__func__, module, image);
+    CUresult result = client.wait_recv(module);
+    printf(">>> success!\n");
+
+    return result;
+}
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTableId){
     printf("Intercepted execution (redirected): %s\n", __func__);
@@ -137,7 +190,7 @@ CU_HOOK_REMOTE((cuMemAlloc), (CUdeviceptr* dptr, size_t bytesize), dptr, bytesiz
 extern "C" CUresult CUDAAPI cuMemHostAlloc(void **pp, size_t bytesize, unsigned int Flags){
     //! [todo] there would be waste for the allocated memory on the microvm
     std::cout << "cumemhostalloc invoked" << std::endl;
-    *pp = pinned_memory.register_pinned_memory(bytesize);
+    // *pp = pinned_memory.register_pinned_memory(bytesize);
     client.CallCudaFunction(__func__, *pp, bytesize, Flags);
     CUresult result = client.wait_recv();
     printf("Intercepted execution (redirected): %s\n", __func__);
@@ -145,8 +198,8 @@ extern "C" CUresult CUDAAPI cuMemHostAlloc(void **pp, size_t bytesize, unsigned 
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
-    if(pinned_memory.is_pinned(srcHost)) pinned_memory.sync(srcHost), std::cout << "the ptr is pinned at " << srcHost << std::endl;
-    else client.to_device(srcHost, ByteCount);
+    // if(pinned_memory.is_pinned(srcHost)) pinned_memory.sync(srcHost), std::cout << "the ptr is pinned at " << srcHost << std::endl;
+    client.to_device(srcHost, ByteCount);
     client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount);
     CUresult result = client.wait_recv();
     printf("Intercepted execution (redirected): %s\n", __func__);
@@ -156,14 +209,15 @@ extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcH
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     client.CallCudaFunction(__func__, dstHost, srcDevice, ByteCount);
     CUresult result = client.wait_recv();
-    if(pinned_memory.is_pinned(dstHost)) pinned_memory.remap();
-    else client.from_device(dstHost, ByteCount);
+    // if(pinned_memory.is_pinned(dstHost)) pinned_memory.remap();
+    client.from_device(dstHost, ByteCount);
     printf("Intercepted execution (redirected): %s\n", __func__);
     return result;
 }
 //==================================================================================================================
 //* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
+    printf("Intercepted execution (redirected): %s\n", __func__);
     client.CallCudaFunction(__func__, cu_module, fname);
     CUresult result = client.wait_recv();
     *cu_module = (CUmodule) client.get_scalar_result();
@@ -173,12 +227,13 @@ extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname)
 //==================================================================================================================
 //* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
-    client.CallCudaFunction(__func__, hfunc, hmod, name);
-    CUresult result = client.wait_recv();
-    *hfunc = (CUfunction) client.get_scalar_result();
-    hashfunc[*hfunc] = name;
     printf("Intercepted execution (redirected): %s\n", __func__);
-    return result;
+    // client.CallCudaFunction(__func__, hfunc, hmod, name);
+    // CUresult result = client.wait_recv();
+    // *hfunc = (CUfunction) client.get_scalar_result();
+    // hashfunc[*hfunc] = name;
+    // return result;
+    return CUDA_SUCCESS;
 }
 //==================================================================================================================
 //FIXME how to deal with the `extra`? where is it used? =
@@ -264,14 +319,18 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
 //==================================================================================================================
 /* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
 void *dlsym(void *handle, const char *symbol) {
+  printf("[dlsym] %s\n", symbol);
   // for CUDA func
   if(strcmp(symbol, SYMBOL_TO_STR(cuGetProcAddress)) == 0){
     printf("intercepted: %s\n", symbol);
     return (void *) &getProcAddressBySymbol;
+  } else if(strcmp(symbol, SYMBOL_TO_STR(cuInit)) == 0){
+    return (void *) &cuInit;
   }
-
+  void *result = real_dlsym(handle, symbol);
+  assert(result != nullptr);
   // for all other func
-  return (real_dlsym(handle, symbol));
+  return result;
 }
 //==================================================================================================================
 // #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
@@ -702,9 +761,9 @@ CU_HOOK_DRIVER_FUNC(cuCtxGetStreamPriorityRange_intercepted, cuCtxGetStreamPrior
 
 CU_HOOK_DRIVER_FUNC(cuCtxSetSharedMemConfig_intercepted, cuCtxSetSharedMemConfig, (CUsharedconfig config), config)
 
-CU_HOOK_DRIVER_FUNC(cuCtxSynchronize_intercepted, cuCtxSynchronize, (void), )
+CU_HOOK_DRIVER_FUNC(cuCtxSynchronize_intercepted, cuCtxSynchronize, (), )
 
-CU_HOOK_DRIVER_FUNC(cuCtxResetPersistingL2Cache_intercepted, cuCtxResetPersistingL2Cache, (void), )
+CU_HOOK_DRIVER_FUNC(cuCtxResetPersistingL2Cache_intercepted, cuCtxResetPersistingL2Cache, (), )
 
 CU_HOOK_DRIVER_FUNC(cuCtxPopCurrent_intercepted, cuCtxPopCurrent, (CUcontext *pctx), pctx)
 
@@ -712,13 +771,13 @@ CU_HOOK_DRIVER_FUNC(cuCtxPushCurrent_intercepted, cuCtxPushCurrent, (CUcontext c
 
 CU_HOOK_DRIVER_FUNC(cuModuleLoad_intercepted, cuModuleLoad, (CUmodule *module, const char *fname), module, fname)
 
-CU_HOOK_DRIVER_FUNC(cuModuleLoadData_intercepted, cuModuleLoadData, (CUmodule *module, const void *image), module, image)
+// CU_HOOK_DRIVER_FUNC(cuModuleLoadData_intercepted, cuModuleLoadData, (CUmodule *module, const void *image), module, image)
 
 CU_HOOK_DRIVER_FUNC(cuModuleLoadFatBinary_intercepted, cuModuleLoadFatBinary, (CUmodule *module, const void *fatCubin), module, fatCubin)
 
 CU_HOOK_DRIVER_FUNC(cuModuleUnload_intercepted, cuModuleUnload, (CUmodule hmod), hmod)
 
-CU_HOOK_DRIVER_FUNC(cuModuleGetFunction_intercepted, cuModuleGetFunction, (CUfunction *hfunc, CUmodule hmod, const char *name), hfunc, hmod, name)
+// CU_HOOK_DRIVER_FUNC(cuModuleGetFunction_intercepted, cuModuleGetFunction, (CUfunction *hfunc, CUmodule hmod, const char *name), hfunc, hmod, name)
 
 CU_HOOK_DRIVER_FUNC(cuModuleGetGlobal_intercepted, cuModuleGetGlobal, (CUdeviceptr *dptr, unsigned int *bytes, CUmodule hmod, const char *name), dptr, bytes, hmod, name)
 
@@ -1244,7 +1303,7 @@ CU_HOOK_DRIVER_FUNC(cuGLCtxCreate_intercepted, cuGLCtxCreate,
   pCtx, Flags, device)
 
 //todo check the usage
-CU_HOOK_DRIVER_FUNC(cuGLInit_intercepted, cuGLInit, (void),)
+CU_HOOK_DRIVER_FUNC(cuGLInit_intercepted, cuGLInit, (),)
 
 // CU_HOOK_DRIVER_FUNC(cuGLGetDevices_intercepted, cuGLGetDevices,
 //   (unsigned int* pCudaDeviceCount, CUdevice* pCudaDevices, unsigned int cudaDeviceCount, CUGLDeviceList deviceList),
@@ -1378,6 +1437,8 @@ CU_HOOK_DRIVER_FUNC(cuUserObjectCreate_intercepted, cuUserObjectCreate,
 /* Interception version for `cuGetProcAddress` and all needed CUDA funcs */
 extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int cudaVersion, cuuint64_t flags,
   CUdriverProcAddressQueryResult* symbolStatus) {
+// printf("Intercepted cuGetProcAddress: symbol=%s\n", symbol);
+assert(symbol != nullptr);
 if(strcmp(symbol, "cuGetProcAddress") == 0){
   *pfn = (void *) &getProcAddressBySymbol;
   return CUDA_SUCCESS;
@@ -1391,7 +1452,7 @@ TRY_INTERCEPT("cuDeviceGetCount", cuDeviceGetCount)
 
 TRY_INTERCEPT("cuDeviceGetName", cuDeviceGetName)
 
-TRY_INTERCEPT("cuDeviceTotalMem", cuDeviceTotalMem)
+TRY_INTERCEPT("cuDeviceTotalMem", cuDeviceTotalMem_v2)
 
 TRY_INTERCEPT("cuDeviceGetAttribute", cuDeviceGetAttribute)
 
@@ -1463,7 +1524,7 @@ TRY_INTERCEPT("cuCtxPushCurrent", cuCtxPushCurrent)
 
 TRY_INTERCEPT("cuModuleLoad", cuModuleLoad)
 
-TRY_INTERCEPT("cuModuleLoadData", cuModuleLoadData_intercepted)
+TRY_INTERCEPT("cuModuleLoadData", cuModuleLoadData)
 
 TRY_INTERCEPT("cuModuleLoadFatBinary", cuModuleLoadFatBinary_intercepted)
 
@@ -1968,42 +2029,42 @@ TRY_INTERCEPT("cuLinkDestroy", cuLinkDestroy_intercepted)
 TRY_INTERCEPT("cuMemPoolImportFromShareableHandle", cuMemPoolImportFromShareableHandle_intercepted)
 TRY_INTERCEPT("cuGLCtxCreate", cuGLCtxCreate_intercepted)
 TRY_INTERCEPT("cuGLInit", cuGLInit_intercepted)
-NO_INTERCEPT("cuGLGetDevices")
-NO_INTERCEPT("cuGLRegisterBufferObject")
-NO_INTERCEPT("cuGLMapBufferObject")
-NO_INTERCEPT("cuGLMapBufferObjectAsync")
-NO_INTERCEPT("cuGLUnmapBufferObject")
-NO_INTERCEPT("cuGLUnmapBufferObjectAsync")
-NO_INTERCEPT("cuGLUnregisterBufferObject")
-NO_INTERCEPT("cuGLSetBufferObjectMapFlags")
-NO_INTERCEPT("cuGraphicsGLRegisterImage")
-NO_INTERCEPT("cuGraphicsGLRegisterBuffer")
-NO_INTERCEPT("cuGraphicsEGLRegisterImage")
-NO_INTERCEPT("cuEGLStreamConsumerConnect")
-NO_INTERCEPT("cuEGLStreamConsumerDisconnect")
-NO_INTERCEPT("cuEGLStreamConsumerAcquireFrame")
-NO_INTERCEPT("cuEGLStreamConsumerReleaseFrame")
-NO_INTERCEPT("cuEGLStreamProducerConnect")
-NO_INTERCEPT("cuEGLStreamProducerDisconnect")
-NO_INTERCEPT("cuEGLStreamProducerPresentFrame")
-NO_INTERCEPT("cuEGLStreamProducerReturnFrame")
-NO_INTERCEPT("cuGraphicsResourceGetMappedEglFrame")
-NO_INTERCEPT("cuEGLStreamConsumerConnectWithFlags")
-NO_INTERCEPT("cuProfilerInitialize")
+// NO_INTERCEPT("cuGLGetDevices")
+// NO_INTERCEPT("cuGLRegisterBufferObject")
+// NO_INTERCEPT("cuGLMapBufferObject")
+// NO_INTERCEPT("cuGLMapBufferObjectAsync")
+// NO_INTERCEPT("cuGLUnmapBufferObject")
+// NO_INTERCEPT("cuGLUnmapBufferObjectAsync")
+// NO_INTERCEPT("cuGLUnregisterBufferObject")
+// NO_INTERCEPT("cuGLSetBufferObjectMapFlags")
+// NO_INTERCEPT("cuGraphicsGLRegisterImage")
+// NO_INTERCEPT("cuGraphicsGLRegisterBuffer")
+// NO_INTERCEPT("cuGraphicsEGLRegisterImage")
+// NO_INTERCEPT("cuEGLStreamConsumerConnect")
+// NO_INTERCEPT("cuEGLStreamConsumerDisconnect")
+// NO_INTERCEPT("cuEGLStreamConsumerAcquireFrame")
+// NO_INTERCEPT("cuEGLStreamConsumerReleaseFrame")
+// NO_INTERCEPT("cuEGLStreamProducerConnect")
+// NO_INTERCEPT("cuEGLStreamProducerDisconnect")
+// NO_INTERCEPT("cuEGLStreamProducerPresentFrame")
+// NO_INTERCEPT("cuEGLStreamProducerReturnFrame")
+// NO_INTERCEPT("cuGraphicsResourceGetMappedEglFrame")
+// NO_INTERCEPT("cuEGLStreamConsumerConnectWithFlags")
+// NO_INTERCEPT("cuProfilerInitialize")
 TRY_INTERCEPT("cuProfilerStart", cuProfilerStart_intercepted)
 TRY_INTERCEPT("cuProfilerStop", cuProfilerStop_intercepted)
-NO_INTERCEPT("cuVDPAUGetDevice")
-NO_INTERCEPT("cuVDPAUCtxCreate")
-NO_INTERCEPT("cuGraphicsVDPAURegisterVideoSurface")
-NO_INTERCEPT("cuGraphicsVDPAURegisterOutputSurface")
+// NO_INTERCEPT("cuVDPAUGetDevice")
+// NO_INTERCEPT("cuVDPAUCtxCreate")
+// NO_INTERCEPT("cuGraphicsVDPAURegisterVideoSurface")
+// NO_INTERCEPT("cuGraphicsVDPAURegisterOutputSurface")
 TRY_INTERCEPT("cuGraphInstantiateWithFlags", cuGraphInstantiateWithFlags_intercepted)
 TRY_INTERCEPT("cuGraphKernelNodeGetAttribute", cuGraphKernelNodeGetAttribute_intercepted)
 TRY_INTERCEPT("cuGraphKernelNodeSetAttribute", cuGraphKernelNodeSetAttribute_intercepted)
 TRY_INTERCEPT("cuUserObjectCreate", cuUserObjectCreate_intercepted)
-NO_INTERCEPT("cuGraphInstantiateWithParams_ptsz")
+TRY_INTERCEPT("cuOccupancyMaxPotentialBlockSize", cuOccupancyMaxPotentialBlockSize)
+// NO_INTERCEPT("cuGraphInstantiateWithParams_ptsz")
 
 // If no need to intercept, call the corresponding CUDA function directly
 CUresult result = cuGetProcAddress_v2(symbol, pfn, cudaVersion, flags, symbolStatus);
-printf("Intercepted cuGetProcAddress: symbol=%s\n", symbol);
 return result;
 }

@@ -243,6 +243,30 @@ void GPUInstance::implement_cuda_function(){
 
       response_.set_cuscalar((uint64_t) *cumodules_.back());
       response_.set_curesult(result);
+  } else if(FUNC_COMP(function_name, cuModuleLoadData)){
+      //HACK consider access control in multi-client case
+      std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+
+      using param_t = FunctionTraits<decltype(cuModuleLoad)>::ParameterTuple;
+      param_t args; deserializer_ >> args;
+      cumodules_.push_back(std::make_unique<CUmodule>());
+      std::get<0>(args) = cumodules_.back().get();
+      std::get<1>(args) = (const char*)vgpu_ptr_;
+      CUresult result = std::apply(cuModuleLoad, args);
+      response_.set_cuscalar((uint64_t) *cumodules_.back());
+      response_.set_curesult(result);
+  } else if(FUNC_COMP(function_name, cuOccupancyMaxPotentialBlockSize)){
+      //HACK consider access control in multi-client case
+      std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+
+      using param_t = FunctionTraits<decltype(cuOccupancyMaxPotentialBlockSize)>::ParameterTuple;
+      param_t args; deserializer_ >> args;
+      int minGridSize, blockSize;
+      std::get<0>(args) = &minGridSize;
+      std::get<1>(args) = &blockSize;
+      CUresult result = std::apply(cuOccupancyMaxPotentialBlockSize, args);
+      response_ << minGridSize << blockSize;
+      response_.set_curesult(result);
   } else if(FUNC_COMP(function_name, cuModuleGetFunction)){
       //HACK consider access control in multi-client case
       std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
@@ -284,9 +308,14 @@ void GPUInstance::implement_cuda_function(){
 
       response_.set_curesult(result);
       resolve_cuda_error(result);
-  } else if(FUNC_COMP(function_name, cuCtxDestroy)){
-      close(client_fd_);
-      client_fd_ = -1;
+  // } else if(FUNC_COMP(function_name, cuCtxDestroy)){
+  //     // close(client_fd_);
+  //     // client_fd_ = -1;
+  //     std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+  //     using param_t = FunctionTraits<decltype(cuCtxDestroy)>::ParameterTuple;
+  //     param_t args; deserializer_ >> args;
+  //     CUresult result = std::apply(cuCtxDestroy, args);
+  //     response_.set_curesult(result);
   } else if(FUNC_COMP(function_name, cuMemHostAlloc)){
       std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
         
@@ -346,11 +375,48 @@ void GPUInstance::implement_cuda_function(){
       
       response_.set_curesult(result);
       response_ << args;
+  // } else if(FUNC_COMP(function_name, cudaMalloc)){
+  //     std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+  //     using param_t = std::tuple<void**, size_t>;
+  //     param_t args; deserializer_ >> args;
+
+  //     hdata_ptrs_.push_back(std::make_unique<void*>());
+  //     std::get<0>(args) = hdata_ptrs_.back().get();
+  //     cudaError_t result = cudaMalloc(hdata_ptrs_.back().get(), std::get<1>(args));
+  //     response_ << result;
+  //     response_ << args;
+  // } else if(FUNC_COMP(function_name, cudaMemcpy)){
+  //     std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
+  //     using param_t = std::tuple<void**, size_t>;
+  //     param_t args; deserializer_ >> args;
+
+  //     hdata_ptrs_.push_back(std::make_unique<void*>());
+  //     std::get<0>(args) = hdata_ptrs_.back().get();
+  //     cudaError_t result = cudaMalloc(hdata_ptrs_.back().get(), std::get<1>(args));
+  //     response_ << result;
+  //     response_ << args;
+  } else if(FUNC_COMP(function_name, cudaGetDeviceCount)){
+      int ret;
+      cudaError_t result = cudaGetDeviceCount(&ret);
+      response_ << result;
+      response_ << ret;
+  } else if(FUNC_COMP(function_name, cudaGetDevice)){
+      int ret;
+      cudaError_t result = cudaGetDevice(&ret);
+      response_ << result;
+      response_ << ret;
+  } else if(FUNC_COMP(function_name, cudaGetDeviceProperties)){
+      cudaDeviceProp ret1;
+      int ret2; deserializer_ >> ret2;
+      cudaError_t result = cudaGetDeviceProperties(&ret1, ret2);
+      response_ << result;
+      response_ << ret1;
   } else {
       func_map[function_name]();
   }
 
   return_result();
+  std::cout << "<<<<<<<<<<results returned" << std::endl;
 }
 //======================================================================================//
 
