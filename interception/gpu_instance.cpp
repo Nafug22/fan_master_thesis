@@ -179,7 +179,7 @@ void GPUInstance::implement_cuda_function(){
       std::cout << "<<<<<<<<<<implemented as cuDeviceGetName" << std::endl;
       using param_t = FunctionTraits<decltype(cuDeviceGetName)>::ParameterTuple;
       param_t args; deserializer_ >> args;
-      char name[100];
+      char name[256];
       std::get<0>(args) = name;
       CUresult result = std::apply(cuDeviceGetName, args);
       response_.set_curesult(result);

@@ -39,7 +39,7 @@ class GPUInstance{
   public:
     explicit GPUInstance(int device_id, int client_fd)
         : client_fd_(client_fd),
-          vgpu_(SHM_PATH, (1 << 20) * sizeof(float)),
+          vgpu_(SHM_PATH, 200000),
           vgpu_ptr_(vgpu_.get()),
           pinned_memory_("/dev/shm/cuda_pin", SHM_SIZE * 5),
           client_pin_start_(nullptr)

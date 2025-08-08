@@ -18,7 +18,7 @@
 
 #include <stdexcept>
 #define BUFFER_SIZE 10000
-#define GPU_SIZE 10000
+#define GPU_SIZE 2000000
 #define VGPU_FILE "/dev/vdb"
 
 /* Data types defined by CUDA that should be processed as non-ptr. */
@@ -57,7 +57,16 @@ class VsockHandle{
         ssize_t total_size = 0;
         char* data = (char*) data_ptr;
         while(total_size < data_size){
-          ssize_t local_size = recv(sock_, data + total_size, data_size - total_size, 0);
+          ssize_t local_size = recv(sock_, data + total_size, data_size - total_size, MSG_WAITALL);
+          if (local_size < 0) {
+              perror("recv error");
+              exit(EXIT_FAILURE);
+          }
+          if (local_size == 0) {
+              // peer closed connection
+              fprintf(stderr, "Connection closed prematurely\n");
+              exit(EXIT_FAILURE);
+          }
           total_size += local_size;
         }
     }
@@ -173,7 +182,7 @@ class Response {
     static size_t size() { return msize_; };
 
   private:
-    static const size_t msize_ = sizeof(CUresult) + 100 * sizeof(uint64_t);
+    static const size_t msize_ = sizeof(CUresult) + 300 * sizeof(uint64_t);
     void* mdata_;
     CUresult *curesult_buffer_;
     uint64_t *scalar_result_buffer_;
@@ -211,6 +220,21 @@ class Serializer {
 
     /** for `char*` particularly to get it correct. */
     Serializer& operator<<(const char* str_content){
+        size_t size = std::strlen(str_content);
+        operator<<(size);
+
+        std::memcpy(mdata_ + mcount_, str_content, size * sizeof(char));
+        mcount_ += size * sizeof(char);
+
+        static const char term = '\0';
+        std::memcpy(mdata_ + mcount_, &term, sizeof(char));
+        mcount_ += sizeof(char);
+
+        return *this;
+    }
+
+    /** for `char*` particularly to get it correct. */
+    Serializer& operator<<(char* str_content){
         size_t size = std::strlen(str_content);
         operator<<(size);
 
