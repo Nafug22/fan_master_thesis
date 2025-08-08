@@ -425,6 +425,15 @@ class VirtualGPU {
     }
 
     void to_device(const void* data_ptr, size_t byte_size) {
+      if (vgpu_ptr_ == nullptr) {
+          std::cout << "[ERROR] vgpu_ptr_ is null!\n";
+          std::abort();
+      }
+      
+      if (data_ptr == nullptr) {
+          std::cout << "[ERROR] data_ptr is null!\n";
+          std::abort();
+      }
       memcpy(vgpu_ptr_, data_ptr, byte_size);
       sync(byte_size);
     }

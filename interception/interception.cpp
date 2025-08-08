@@ -165,14 +165,14 @@ extern "C" CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const C
 }
 //==================================================================================================================
 //todo where is the data in srchost located?
-extern "C" CUresult CUDAAPI cuMemcpyHtoDAsync(CUdeviceptr dstDevice, const void *srcHost, unsigned int ByteCount, CUstream hStream){
-    pinned_memory.sync(srcHost);
-    client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount, hStream);
-    CUresult result = client.wait_recv();
+// extern "C" CUresult CUDAAPI cuMemcpyHtoDAsync(CUdeviceptr dstDevice, const void *srcHost, unsigned int ByteCount, CUstream hStream){
+//     pinned_memory.sync(srcHost);
+//     client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount, hStream);
+//     CUresult result = client.wait_recv();
 
-    printf("Intercepted execution (redirected): %s\n", __func__);
-    return result;
-}
+//     printf("Intercepted execution (redirected): %s\n", __func__);
+//     return result;
+// }
 //==================================================================================================================
 //todo 
 // extern "C" CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const CUuuid *pExportTableId){
@@ -190,7 +190,6 @@ CU_HOOK_REMOTE((cuMemAlloc), (CUdeviceptr* dptr, size_t bytesize), dptr, bytesiz
 extern "C" CUresult CUDAAPI cuMemHostAlloc(void **pp, size_t bytesize, unsigned int Flags){
     //! [todo] there would be waste for the allocated memory on the microvm
     std::cout << "cumemhostalloc invoked" << std::endl;
-    // *pp = pinned_memory.register_pinned_memory(bytesize);
     client.CallCudaFunction(__func__, *pp, bytesize, Flags);
     CUresult result = client.wait_recv();
     printf("Intercepted execution (redirected): %s\n", __func__);
@@ -198,7 +197,6 @@ extern "C" CUresult CUDAAPI cuMemHostAlloc(void **pp, size_t bytesize, unsigned 
 }
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcHost, size_t ByteCount){
-    // if(pinned_memory.is_pinned(srcHost)) pinned_memory.sync(srcHost), std::cout << "the ptr is pinned at " << srcHost << std::endl;
     client.to_device(srcHost, ByteCount);
     client.CallCudaFunction(__func__, dstDevice, srcHost, ByteCount);
     CUresult result = client.wait_recv();
@@ -209,7 +207,6 @@ extern "C" CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void* srcH
 extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, size_t ByteCount){
     client.CallCudaFunction(__func__, dstHost, srcDevice, ByteCount);
     CUresult result = client.wait_recv();
-    // if(pinned_memory.is_pinned(dstHost)) pinned_memory.remap();
     client.from_device(dstHost, ByteCount);
     printf("Intercepted execution (redirected): %s\n", __func__);
     return result;
@@ -1634,7 +1631,7 @@ TRY_INTERCEPT("cuMemcpyPeerAsync", cuMemcpyPeerAsync_intercepted)
 
 TRY_INTERCEPT("cuMemcpyHtoD", cuMemcpyHtoD)
 
-TRY_INTERCEPT("cuMemcpyHtoDAsync", cuMemcpyHtoDAsync)
+// TRY_INTERCEPT("cuMemcpyHtoDAsync", cuMemcpyHtoDAsync)
 
 TRY_INTERCEPT("cuMemcpyDtoH", cuMemcpyDtoH)
 
