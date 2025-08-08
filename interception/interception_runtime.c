@@ -2,6 +2,8 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <cuda_runtime_api.h>
+#include <cuda_runtime.h>
+#include <cuda.h>
 #include <dlfcn.h>
 #define INTERCEPT_RT(func_name, args_decl, ...) \
 cudaError_t func_name args_decl { \
@@ -274,3 +276,47 @@ INTERCEPT_RT(cudaStreamGetCaptureInfo_ptsz, (cudaStream_t stream, enum cudaStrea
 INTERCEPT_RT(cudaStreamCopyAttributes, (cudaStream_t dstStream, cudaStream_t srcStream), dstStream, srcStream)
 INTERCEPT_RT(cudaStreamGetAttribute, (cudaStream_t stream, cudaStreamAttrID attr, cudaStreamAttrValue *value), stream, attr, value)
 INTERCEPT_RT(cudaStreamSetAttribute, (cudaStream_t stream, cudaStreamAttrID attr, const cudaStreamAttrValue *param), stream, attr, param)
+
+// INTERCEPT_RT(cudaKernelSetAttributeForDevice,
+//   (cudaKernel_t kernel, cudaFuncAttribute attr, int value, int device),
+//   kernel, attr, value, device)
+
+INTERCEPT_RT(cudaLibraryEnumerateKernels,
+  (cudaKernel_t* kernels, unsigned int numKernels, cudaLibrary_t lib),
+  kernels, numKernels, lib)
+
+INTERCEPT_RT(cudaLibraryGetGlobal,
+  (void** dptr, size_t* bytes, cudaLibrary_t library, const char* name),
+  dptr, bytes, library, name)
+
+INTERCEPT_RT(cudaLibraryGetKernel,
+  (cudaKernel_t* pKernel, cudaLibrary_t library, const char* name),
+  pKernel, library, name)
+
+INTERCEPT_RT(cudaLibraryGetKernelCount,
+  (unsigned int* count, cudaLibrary_t lib),
+  count, lib)
+
+INTERCEPT_RT(cudaLibraryGetManaged,
+  (void** dptr, size_t* bytes, cudaLibrary_t library, const char* name),
+  dptr, bytes, library, name)
+
+INTERCEPT_RT(cudaLibraryGetUnifiedFunction,
+  (void** fptr, cudaLibrary_t library, const char* symbol),
+  fptr, library, symbol)
+
+INTERCEPT_RT(cudaLibraryLoadData,
+  (cudaLibrary_t* library, const void* code,
+   cudaJitOption** jitOptions, void** jitOptionsValues, unsigned int numJitOptions,
+   cudaLibraryOption** libraryOptions, void** libraryOptionValues, unsigned int numLibraryOptions),
+  library, code, jitOptions, jitOptionsValues, numJitOptions, libraryOptions, libraryOptionValues, numLibraryOptions)
+
+INTERCEPT_RT(cudaLibraryLoadFromFile,
+  (cudaLibrary_t* library, const char* fileName,
+   cudaJitOption** jitOptions, void** jitOptionsValues, unsigned int numJitOptions,
+   cudaLibraryOption** libraryOptions, void** libraryOptionValues, unsigned int numLibraryOptions),
+  library, fileName, jitOptions, jitOptionsValues, numJitOptions, libraryOptions, libraryOptionValues, numLibraryOptions)
+
+INTERCEPT_RT(cudaLibraryUnload,
+  (cudaLibrary_t library),
+  library)
