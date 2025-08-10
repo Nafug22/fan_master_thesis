@@ -252,7 +252,7 @@ void GPUInstance::implement_cuda_function(){
       cumodules_.push_back(std::make_unique<CUmodule>());
       std::get<0>(args) = cumodules_.back().get();
       std::get<1>(args) = (const char*)vgpu_ptr_;
-      CUresult result = std::apply(cuModuleLoad, args);
+      CUresult result = std::apply(cuModuleLoadData, args);
       response_.set_cuscalar((uint64_t) *cumodules_.back());
       response_.set_curesult(result);
   } else if(FUNC_COMP(function_name, cuOccupancyMaxPotentialBlockSize)){

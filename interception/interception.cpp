@@ -146,7 +146,7 @@ extern "C" CUresult CUDAAPI cuOccupancyMaxPotentialBlockSize(int* minGridSize, i
 //==================================================================================================================
 extern "C" CUresult CUDAAPI cuModuleLoadData(CUmodule *module, const void *image){
     printf("Intercepted execution (redirected): %s\n", __func__);
-    client.to_device(image, std::strlen((const char*)image));
+    client.to_device(image, std::strlen((const char*)image) + 1);
     client.CallCudaFunction(__func__, module, image);
     CUresult result = client.wait_recv(module);
     printf(">>> success!\n");
@@ -225,11 +225,11 @@ extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname)
 //* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleGetFunction(CUfunction* hfunc, CUmodule hmod, const char* name){
     printf("Intercepted execution (redirected): %s\n", __func__);
-    // client.CallCudaFunction(__func__, hfunc, hmod, name);
-    // CUresult result = client.wait_recv();
-    // *hfunc = (CUfunction) client.get_scalar_result();
-    // hashfunc[*hfunc] = name;
-    // return result;
+    client.CallCudaFunction(__func__, hfunc, hmod, name);
+    CUresult result = client.wait_recv();
+    *hfunc = (CUfunction) client.get_scalar_result();
+    hashfunc[*hfunc] = name;
+    return result;
     return CUDA_SUCCESS;
 }
 //==================================================================================================================
