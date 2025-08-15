@@ -37,7 +37,7 @@ class CUFuncProto{
     ~CUFuncProto(){};
 
     std::vector<std::string> &get_params(const std::string func_name){
-        if(!hashmap.count(func_name)) printf("not finding the func_name\n");
+        if(!hashmap.count(func_name)) printf("not finding the func_name %s\n", func_name.c_str());
         return hashmap[func_name];
     }
 
