@@ -1,11 +1,11 @@
 add_executable(firecracker_test firecracker_test.cpp)
-target_include_directories(interception PRIVATE
+target_include_directories(firecracker_test PRIVATE
   /usr/local/cuda-12.6/include
 )
-target_include_directories(interception PRIVATE
+target_include_directories(firecracker_test PRIVATE
   /usr/local/cuda-12.6/lib64/stubs
 )
-target_link_libraries(interception PRIVATE 
+target_link_libraries(firecracker_test PRIVATE 
   dl cuda
 )
 # Register the test (this will run the compiled executable)
