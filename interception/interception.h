@@ -11,7 +11,7 @@
 
 #include "type_decl.h"
 #ifndef PTX_SRC
-  #define PTX_SRC "./matrixMul_kernel64.ptx"
+  #define PTX_SRC "./vector_add.ptx"
 #endif
 
 #undef cuMemcpyHtoDAsync
@@ -28,7 +28,7 @@ void* libcuda_driver_handle = dlopen("libcuda.so", RTLD_LAZY);
 
 CUDAClient client{};
 // PinnedMemory pinned_memory{"/dev/vdd", (1 << 20) * sizeof(float) * 5};
-static CUFuncProto func_proto{PTX_SRC};
+static CUFuncProto func_proto{};
 //HACK consider integrate into the vgpu
 static std::unordered_map<CUfunction, std::string> hashfunc;
 #endif

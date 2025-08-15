@@ -1,5 +1,6 @@
 #include "gpu_instance.h"
 #include <cuda_runtime.h>
+#include <filesystem>
 #define FUNC_COMP(func_name, symbol) strcmp(func_name, SYMBOL_TO_STR(symbol)) == 0
 
 //======================================================================================//
@@ -238,10 +239,13 @@ void GPUInstance::implement_cuda_function(){
       using param_t = FunctionTraits<decltype(cuModuleLoad)>::ParameterTuple;
       param_t args; deserializer_ >> args;
       cumodules_.push_back(std::make_unique<CUmodule>());
-      std::get<0>(args) = cumodules_.back().get();
-      CUresult result = std::apply(cuModuleLoad, args);
+      CUmodule _module;
+      auto full_path = std::string(SOURCE_DIR) + "/vector_add.ptx";
+      CUresult result = cuModuleLoad(&_module, full_path.c_str());
+      
+      std::cout << (char*) vgpu_ptr_ << std::endl;
 
-      response_.set_cuscalar((uint64_t) *cumodules_.back());
+      response_.set_cuscalar((uint64_t) _module);
       response_.set_curesult(result);
   } else if(FUNC_COMP(function_name, cuModuleLoadData)){
       //HACK consider access control in multi-client case

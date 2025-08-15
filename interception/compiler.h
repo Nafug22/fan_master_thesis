@@ -26,12 +26,14 @@ class CUFuncProto{
     /**
      * @param ptx_file the correct file directory of the ptx file
      */
+    CUFuncProto(){};
     CUFuncProto(std::string file_name){
+        std::ifstream ptx_file;
         ptx_file.open(file_name);
         if(!ptx_file.is_open()){
             std::cerr << "Error opening the file!" << std::endl;
         }
-        initialize();
+        initialize(ptx_file);
         ptx_file.close();
     };
     ~CUFuncProto(){};
@@ -40,6 +42,8 @@ class CUFuncProto{
         if(!hashmap.count(func_name)) printf("not finding the func_name %s\n", func_name.c_str());
         return hashmap[func_name];
     }
+
+    void add_module(std::ifstream &ptx_file) { initialize(ptx_file); }
 
     /**
      * @brief tests the result
@@ -55,13 +59,12 @@ class CUFuncProto{
     }
 
   private:
-    std::ifstream ptx_file;
     std::unordered_map<std::string, std::vector<std::string>> hashmap;  /* stores the function parameters types of each function. */
 
     /**
      * @brief convert each entry for the hashmap.
      */
-    void convert(const std::string& entry){
+    void convert(std::ifstream &ptx_file, const std::string& entry){
         std::regex rgx("\\.entry (\\w+)\\(");
         std::smatch match;
         
@@ -83,10 +86,10 @@ class CUFuncProto{
     /**
      * @brief initializes the hashmap that stores the func prototype info.
      */
-    void initialize(){
+    void initialize(std::ifstream &ptx_file){
         std::string line;
         while(std::getline(ptx_file, line)) {
-            if(line.find(".entry") != std::string::npos) convert(line);
+            if(line.find(".entry") != std::string::npos) convert(ptx_file, line);
         }
     }
 };

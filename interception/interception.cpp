@@ -221,10 +221,12 @@ extern "C" CUresult CUDAAPI cuMemcpyDtoH(void* dstHost, CUdeviceptr srcDevice, s
 //* methods needed to process the const char*
 extern "C" CUresult CUDAAPI cuModuleLoad(CUmodule* cu_module, const char* fname){
     printf("Intercepted execution (redirected): %s\n", __func__);
+    std::string source_file = std::string(SOURCE_DIR) + "/vector_add.ptx";
+    std::ifstream ptx_file(source_file);
     client.CallCudaFunction(__func__, cu_module, fname);
-    CUresult result = client.wait_recv();
-    *cu_module = (CUmodule) client.get_scalar_result();
-    printf("Intercepted execution (redirected): %s\n", __func__);
+    func_proto.add_module(ptx_file);
+    ptx_file.close();
+    CUresult result = client.wait_recv(cu_module);
     return result;
 }
 //==================================================================================================================
