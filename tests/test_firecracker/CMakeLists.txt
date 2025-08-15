@@ -1,5 +1,4 @@
 add_executable(firecracker_test firecracker_test.cpp)
-target_link_libraries(firecracker_test PRIVATE CUDA::cudart)
 target_include_directories(interception PRIVATE
   /usr/local/cuda-12.6/include
 )
