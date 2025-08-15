@@ -20,7 +20,7 @@ set_target_properties(interception PROPERTIES
     OUTPUT_NAME interception  # Output file will be 'interception.so'
 )
 
-add_library(interception_runtime SHARED interception_runtime.c)
+# add_library(interception_runtime SHARED interception_runtime.c)
 # target_link_libraries(interception_runtime PRIVATE dl ${CUDA_DRIVER_LIB})
 # set_target_properties(interception_runtime PROPERTIES
 #     PREFIX ""  # No "lib" prefix for the shared library
