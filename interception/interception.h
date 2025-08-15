@@ -11,7 +11,7 @@
 
 #include "type_decl.h"
 #ifndef PTX_SRC
-  #define PTX_SRC "./vector_add.ptx"
+  #define PTX_SRC "./matrixMul_kernel64.ptx"
 #endif
 
 #undef cuMemcpyHtoDAsync

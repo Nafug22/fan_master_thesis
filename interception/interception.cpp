@@ -8,7 +8,7 @@
 //==================================================================================================================
 extern "C" cudaError_t cudaGetDeviceCount(int *count) {
   printf("[Intercepted runtime execution] cudaGetDeviceCount\n");
-  client.CallCudaFunction(__func__);
+  client.CallCudaFunction(__func__, count);
   cudaError_t result;
   client.wait_recv(result, count);
   return result;
@@ -55,6 +55,11 @@ void dummy() {printf("this function is not intercepted \n");}
   if(strcmp(symbol, text) == 0){ \
       *pfn = (void *) (&target); \
       return CUDA_SUCCESS; \
+  }
+//==================================================================================================================
+#define TRY_DLSYM(text, target) \
+  if(strcmp(symbol, SYMBOL_TO_STR(target)) == 0){ \
+      return (void *) &target; \
   }
 //==================================================================================================================
 #define NO_INTERCEPT(text) \
@@ -160,8 +165,9 @@ extern "C" CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const C
     CUresult result = client.wait_recv(ppExportTable);
     if(*ppExportTable == nullptr) printf("ppExportTable is null! \n");
     else printf(">>> success!\n");
-
+    std::cout << "ppExportTable = " << ppExportTable << std::endl;
     return result;
+    // return CUDA_SUCCESS;
 }
 //==================================================================================================================
 //todo where is the data in srchost located?
@@ -314,21 +320,7 @@ extern "C" CUresult CUDAAPI cuLaunchKernel(CUfunction f, unsigned int gridDimX, 
 //   return result;
 // }
 //==================================================================================================================
-/* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
-void *dlsym(void *handle, const char *symbol) {
-  printf("[dlsym] %s\n", symbol);
-  // for CUDA func
-  if(strcmp(symbol, SYMBOL_TO_STR(cuGetProcAddress)) == 0){
-    printf("intercepted: %s\n", symbol);
-    return (void *) &getProcAddressBySymbol;
-  } else if(strcmp(symbol, SYMBOL_TO_STR(cuInit)) == 0){
-    return (void *) &cuInit;
-  }
-  void *result = real_dlsym(handle, symbol);
-  assert(result != nullptr);
-  // for all other func
-  return result;
-}
+
 //==================================================================================================================
 // #define CU_HOOK_DRIVER_FUNC(symbol, params, ...) \
 //   extern "C" CUresult CUDAAPI symbol params {   \
@@ -1430,6 +1422,641 @@ CU_HOOK_DRIVER_FUNC(cuUserObjectCreate_intercepted, cuUserObjectCreate,
 // CU_HOOK_DRIVER_FUNC(cuGraphInstantiateWithParams_ptsz_intercepted, cuGraphInstantiateWithParams_ptsz,
 //   (CUgraph *phGraph, CUgraph graph, const CUgraphInstantiateParams *params),
 //   phGraph, graph, params)
+//==================================================================================================================
+/* Intercept the `dlsym` function, which is used by `libcudart.so` to link to `libcuda.so` */
+void *dlsym(void *handle, const char *symbol) {
+  printf("[dlsym] %s\n", symbol);
+  // for CUDA func
+  if(strcmp(symbol, SYMBOL_TO_STR(cuGetProcAddress)) == 0){
+    printf("intercepted: %s\n", symbol);
+    return (void *) &getProcAddressBySymbol;
+  }
+  TRY_DLSYM("cuGetProcAddress", getProcAddressBySymbol)
+  TRY_DLSYM("cuInit", cuInit)
+  
+  TRY_DLSYM("cuDeviceGet", cuDeviceGet)
+  
+  TRY_DLSYM("cuDeviceGetCount", cuDeviceGetCount)
+  
+  TRY_DLSYM("cuDeviceGetName", cuDeviceGetName)
+  
+  TRY_DLSYM("cuDeviceTotalMem", cuDeviceTotalMem_v2)
+  
+  TRY_DLSYM("cuDeviceGetAttribute", cuDeviceGetAttribute)
+  
+  TRY_DLSYM("cuDeviceGetP2PAttribute", cuDeviceGetP2PAttribute_intercepted)
+  
+  TRY_DLSYM("cuDriverGetVersion", cuDriverGetVersion)
+  
+  TRY_DLSYM("cuDeviceGetByPCIBusId", cuDeviceGetByPCIBusId_intercepted)
+  
+  TRY_DLSYM("cuDeviceGetPCIBusId", cuDeviceGetPCIBusId_intercepted)
+  
+  TRY_DLSYM("cuDeviceGetUuid", cuDeviceGetUuid)
+  
+  TRY_DLSYM("cuDeviceGetTexture1DLinearMaxWidth", cuDeviceGetTexture1DLinearMaxWidth_intercepted)
+  
+  TRY_DLSYM("cuDeviceGetDefaultMemPool", cuDeviceGetDefaultMemPool_intercepted)
+  
+  TRY_DLSYM("cuDeviceSetMemPool", cuDeviceSetMemPool_intercepted)
+  
+  TRY_DLSYM("cuDeviceGetMemPool", cuDeviceGetMemPool_intercepted)
+  
+  TRY_DLSYM("cuFlushGPUDirectRDMAWrites", cuFlushGPUDirectRDMAWrites_intercepted)
+  
+  TRY_DLSYM("cuDevicePrimaryCtxRetain", cuDevicePrimaryCtxRetain)
+  
+  TRY_DLSYM("cuDevicePrimaryCtxRelease", cuDevicePrimaryCtxRelease)
+  
+  TRY_DLSYM("cuDevicePrimaryCtxSetFlags", cuDevicePrimaryCtxSetFlags_intercepted)
+  
+  TRY_DLSYM("cuDevicePrimaryCtxGetState", cuDevicePrimaryCtxGetState_intercepted)
+  
+  TRY_DLSYM("cuDevicePrimaryCtxReset", cuDevicePrimaryCtxReset_intercepted)
+  
+  TRY_DLSYM("cuCtxCreate", cuCtxCreate)
+  
+  TRY_DLSYM("cuCtxGetFlags", cuCtxGetFlags_intercepted)
+  
+  TRY_DLSYM("cuCtxSetCurrent", cuCtxSetCurrent)
+  
+  TRY_DLSYM("cuCtxGetCurrent", cuCtxGetCurrent)
+  
+  TRY_DLSYM("cuCtxDetach", cuCtxDetach_intercepted)
+  
+  TRY_DLSYM("cuCtxGetApiVersion", cuCtxGetApiVersion_intercepted)
+  
+  TRY_DLSYM("cuCtxGetDevice", cuCtxGetDevice)
+  
+  TRY_DLSYM("cuCtxGetLimit", cuCtxGetLimit_intercepted)
+  
+  TRY_DLSYM("cuCtxSetLimit", cuCtxSetLimit_intercepted)
+  
+  TRY_DLSYM("cuCtxGetCacheConfig", cuCtxGetCacheConfig_intercepted)
+  
+  TRY_DLSYM("cuCtxSetCacheConfig", cuCtxSetCacheConfig_intercepted)
+  
+  TRY_DLSYM("cuCtxGetSharedMemConfig", cuCtxGetSharedMemConfig_intercepted)
+  
+  TRY_DLSYM("cuCtxGetStreamPriorityRange", cuCtxGetStreamPriorityRange)
+  
+  TRY_DLSYM("cuCtxSetSharedMemConfig", cuCtxSetSharedMemConfig_intercepted)
+  
+  TRY_DLSYM("cuCtxSynchronize", cuCtxSynchronize_intercepted)
+  
+  TRY_DLSYM("cuCtxResetPersistingL2Cache", cuCtxResetPersistingL2Cache_intercepted)
+  
+  TRY_DLSYM("cuCtxPopCurrent", cuCtxPopCurrent)
+  
+  TRY_DLSYM("cuCtxPushCurrent", cuCtxPushCurrent)
+  
+  TRY_DLSYM("cuModuleLoad", cuModuleLoad)
+  
+  TRY_DLSYM("cuModuleLoadData", cuModuleLoadData)
+  
+  TRY_DLSYM("cuModuleLoadFatBinary", cuModuleLoadFatBinary_intercepted)
+  
+  TRY_DLSYM("cuModuleUnload", cuModuleUnload)
+  
+  TRY_DLSYM("cuModuleGetFunction", cuModuleGetFunction)
+  
+  TRY_DLSYM("cuModuleGetGlobal", cuModuleGetGlobal)
+  
+  TRY_DLSYM("cuModuleGetTexRef", cuModuleGetTexRef_intercepted)
+  
+  TRY_DLSYM("cuModuleGetSurfRef", cuModuleGetSurfRef_intercepted)
+  
+  TRY_DLSYM("cuModuleGetLoadingMode", cuModuleGetLoadingMode)
+  
+  TRY_DLSYM("cuLibraryUnload", cuLibraryUnload)
+  
+  TRY_DLSYM("cuLibraryGetKernel", cuLibraryGetKernel_intercepted)
+  
+  TRY_DLSYM("cuLibraryGetModule", cuLibraryGetModule)
+  
+  TRY_DLSYM("cuKernelGetFunction", cuKernelGetFunction_intercepted)
+  
+  TRY_DLSYM("cuLibraryGetGlobal", cuLibraryGetGlobal_intercepted)
+  
+  TRY_DLSYM("cuLibraryGetManaged", cuLibraryGetManaged_intercepted)
+  
+  TRY_DLSYM("cuLibraryGetUnifiedFunction", cuLibraryGetUnifiedFunction_intercepted)
+  
+  TRY_DLSYM("cuLibraryGetKernelCount", cuLibraryGetKernelCount_intercepted)
+  
+  TRY_DLSYM("cuLibraryEnumerateKernels", cuLibraryEnumerateKernels_intercepted)
+  
+  TRY_DLSYM("cuKernelGetAttribute", cuKernelGetAttribute_intercepted)
+  
+  TRY_DLSYM("cuKernelSetAttribute", cuKernelSetAttribute_intercepted)
+  
+  TRY_DLSYM("cuKernelSetCacheConfig", cuKernelSetCacheConfig_intercepted)
+  
+  TRY_DLSYM("cuKernelGetName", cuKernelGetName_intercepted)
+  
+  TRY_DLSYM("cuKernelGetParamInfo", cuKernelGetParamInfo_intercepted)
+  
+  TRY_DLSYM("cuLinkCreate", cuLinkCreate_intercepted)
+  
+  TRY_DLSYM("cuMemGetInfo", cuMemGetInfo_intercepted)
+  
+  TRY_DLSYM("cuMemAllocManaged", cuMemAllocManaged_intercepted)
+  
+  TRY_DLSYM("cuMemAlloc", cuMemAlloc)
+  
+  TRY_DLSYM("cuMemAllocPitch", cuMemAllocPitch_intercepted)
+  
+  TRY_DLSYM("cuMemFree", cuMemFree)
+  
+  TRY_DLSYM("cuMemGetAddressRange", cuMemGetAddressRange_intercepted)
+  
+  TRY_DLSYM("cuMemFreeHost", cuMemFreeHost_intercepted)
+  
+  TRY_DLSYM("cuMemHostAlloc", cuMemHostAlloc)
+  
+  TRY_DLSYM("cuMemHostGetDevicePointer", cuMemHostGetDevicePointer)
+  
+  TRY_DLSYM("cuMemHostGetFlags", cuMemHostGetFlags_intercepted)
+  
+  TRY_DLSYM("cuMemHostRegister", cuMemHostRegister_intercepted)
+  
+  TRY_DLSYM("cuMemHostUnregister", cuMemHostUnregister_intercepted)
+  
+  TRY_DLSYM("cuPointerGetAttribute", cuPointerGetAttribute_intercepted)
+  
+  TRY_DLSYM("cuPointerGetAttributes", cuPointerGetAttributes_intercepted)
+  
+  TRY_DLSYM("cuMemAllocAsync", cuMemAllocAsync_intercepted)
+  
+  TRY_DLSYM("cuMemAllocFromPoolAsync", cuMemAllocFromPoolAsync_intercepted)
+  
+  TRY_DLSYM("cuMemFreeAsync", cuMemFreeAsync_intercepted)
+  
+  TRY_DLSYM("cuMemPoolTrimTo", cuMemPoolTrimTo_intercepted)
+  
+  TRY_DLSYM("cuMemPoolSetAttribute", cuMemPoolSetAttribute_intercepted)
+  
+  TRY_DLSYM("cuMemPoolGetAttribute", cuMemPoolGetAttribute_intercepted)
+  
+  TRY_DLSYM("cuMemPoolSetAccess", cuMemPoolSetAccess_intercepted)
+  
+  TRY_DLSYM("cuMemPoolGetAccess", cuMemPoolGetAccess_intercepted)
+  
+  TRY_DLSYM("cuMemPoolCreate", cuMemPoolCreate_intercepted)
+  
+  TRY_DLSYM("cuMemPoolDestroy", cuMemPoolDestroy_intercepted)
+  
+  TRY_DLSYM("cuMemPoolExportToShareableHandle", cuMemPoolExportToShareableHandle_intercepted)
+  
+  TRY_DLSYM("cuMemPoolExportPointer", cuMemPoolExportPointer_intercepted)
+  
+  TRY_DLSYM("cuMemPoolImportPointer", cuMemPoolImportPointer_intercepted)
+  
+  TRY_DLSYM("cuMemcpy", cuMemcpy_intercepted)
+  
+  TRY_DLSYM("cuMemcpyAsync", cuMemcpyAsync_intercepted)
+  
+  TRY_DLSYM("cuMemcpyPeer", cuMemcpyPeer_intercepted)
+  
+  TRY_DLSYM("cuMemcpyPeerAsync", cuMemcpyPeerAsync_intercepted)
+  
+  TRY_DLSYM("cuMemcpyHtoD", cuMemcpyHtoD)
+  
+  // TRY_DLSYM("cuMemcpyHtoDAsync", cuMemcpyHtoDAsync)
+  
+  TRY_DLSYM("cuMemcpyDtoH", cuMemcpyDtoH)
+  
+  TRY_DLSYM("cuMemcpyDtoHAsync", cuMemcpyDtoHAsync_intercepted)
+  
+  TRY_DLSYM("cuMemcpyDtoD", cuMemcpyDtoD_intercepted)
+  
+  TRY_DLSYM("cuMemcpyDtoDAsync", cuMemcpyDtoDAsync_intercepted)
+  
+  TRY_DLSYM("cuMemcpy2DUnaligned", cuMemcpy2DUnaligned_intercepted)
+  
+  TRY_DLSYM("cuMemcpy2DAsync", cuMemcpy2DAsync_intercepted)
+  
+  TRY_DLSYM("cuMemcpy3D", cuMemcpy3D_intercepted)
+  
+  TRY_DLSYM("cuMemcpy3DAsync", cuMemcpy3DAsync_intercepted)
+  
+  TRY_DLSYM("cuMemcpy3DPeer", cuMemcpy3DPeer_intercepted)
+  
+  TRY_DLSYM("cuMemcpy3DPeerAsync", cuMemcpy3DPeerAsync_intercepted)
+  
+  TRY_DLSYM("cuMemsetD8", cuMemsetD8_intercepted)
+  
+  TRY_DLSYM("cuMemsetD8Async", cuMemsetD8Async)
+  
+  TRY_DLSYM("cuMemsetD2D8", cuMemsetD2D8_intercepted)
+  
+  TRY_DLSYM("cuMemsetD2D8Async", cuMemsetD2D8Async_intercepted)
+  
+  TRY_DLSYM("cuFuncSetCacheConfig", cuFuncSetCacheConfig_intercepted)
+  
+  TRY_DLSYM("cuFuncSetSharedMemConfig", cuFuncSetSharedMemConfig_intercepted)
+  
+  TRY_DLSYM("cuFuncGetAttribute", cuFuncGetAttribute_intercepted)
+  
+  TRY_DLSYM("cuFuncSetAttribute", cuFuncSetAttribute_intercepted)
+  
+  TRY_DLSYM("cuFuncGetName", cuFuncGetName_intercepted)
+  
+  TRY_DLSYM("cuFuncGetParamInfo", cuFuncGetParamInfo_intercepted)
+  
+  TRY_DLSYM("cuArrayCreate", cuArrayCreate_intercepted)
+  
+  TRY_DLSYM("cuArrayGetDescriptor", cuArrayGetDescriptor_intercepted)
+  
+  TRY_DLSYM("cuArrayGetSparseProperties", cuArrayGetSparseProperties_intercepted)
+  
+  TRY_DLSYM("cuArrayGetPlane", cuArrayGetPlane_intercepted)
+  
+  TRY_DLSYM("cuArray3DCreate", cuArray3DCreate_intercepted)
+  
+  TRY_DLSYM("cuArray3DGetDescriptor", cuArray3DGetDescriptor_intercepted)
+  
+  TRY_DLSYM("cuArrayDestroy", cuArrayDestroy_intercepted)
+  
+  TRY_DLSYM("cuMipmappedArrayCreate", cuMipmappedArrayCreate_intercepted)
+  
+  TRY_DLSYM("cuMipmappedArrayGetLevel", cuMipmappedArrayGetLevel_intercepted)
+  
+  TRY_DLSYM("cuMipmappedArrayGetSparseProperties", cuMipmappedArrayGetSparseProperties_intercepted)
+  
+  TRY_DLSYM("cuMipmappedArrayDestroy", cuMipmappedArrayDestroy_intercepted)
+  
+  TRY_DLSYM("cuArrayGetMemoryRequirements", cuArrayGetMemoryRequirements_intercepted)
+  
+  TRY_DLSYM("cuMipmappedArrayGetMemoryRequirements", cuMipmappedArrayGetMemoryRequirements_intercepted)
+  
+  TRY_DLSYM("cuTexObjectCreate", cuTexObjectCreate_intercepted)
+  
+  TRY_DLSYM("cuTexObjectDestroy", cuTexObjectDestroy_intercepted)
+  
+  TRY_DLSYM("cuTexObjectGetResourceDesc", cuTexObjectGetResourceDesc_intercepted)
+  
+  TRY_DLSYM("cuTexObjectGetTextureDesc", cuTexObjectGetTextureDesc_intercepted)
+  
+  TRY_DLSYM("cuTexObjectGetResourceViewDesc", cuTexObjectGetResourceViewDesc_intercepted)
+  
+  TRY_DLSYM("cuSurfObjectCreate", cuSurfObjectCreate_intercepted)
+  
+  TRY_DLSYM("cuSurfObjectDestroy", cuSurfObjectDestroy_intercepted)
+  
+  TRY_DLSYM("cuSurfObjectGetResourceDesc", cuSurfObjectGetResourceDesc_intercepted)
+  
+  TRY_DLSYM("cuImportExternalMemory", cuImportExternalMemory_intercepted)
+  
+  TRY_DLSYM("cuExternalMemoryGetMappedBuffer", cuExternalMemoryGetMappedBuffer_intercepted)
+  
+  TRY_DLSYM("cuExternalMemoryGetMappedMipmappedArray", cuExternalMemoryGetMappedMipmappedArray_intercepted)
+  
+  TRY_DLSYM("cuDestroyExternalMemory", cuDestroyExternalMemory_intercepted)
+  
+  TRY_DLSYM("cuImportExternalSemaphore", cuImportExternalSemaphore_intercepted)
+  
+  TRY_DLSYM("cuSignalExternalSemaphoresAsync", cuSignalExternalSemaphoresAsync_intercepted)
+  
+  TRY_DLSYM("cuWaitExternalSemaphoresAsync", cuWaitExternalSemaphoresAsync_intercepted)
+  
+  TRY_DLSYM("cuDestroyExternalSemaphore", cuDestroyExternalSemaphore_intercepted)
+  
+  TRY_DLSYM("cuDeviceGetNvSciSyncAttributes", cuDeviceGetNvSciSyncAttributes_intercepted)
+  
+  TRY_DLSYM("cuLaunchKernel", cuLaunchKernel)
+  
+  TRY_DLSYM("cuLaunchCooperativeKernel", cuLaunchCooperativeKernel_intercepted)
+  
+  TRY_DLSYM("cuLaunchCooperativeKernelMultiDevice", cuLaunchCooperativeKernelMultiDevice_intercepted)
+  
+  TRY_DLSYM("cuLaunchHostFunc", cuLaunchHostFunc_intercepted)
+  
+  TRY_DLSYM("cuLaunchKernelEx", cuLaunchKernelEx_intercepted)
+  
+  TRY_DLSYM("cuEventCreate", cuEventCreate)
+  
+  TRY_DLSYM("cuEventRecord", cuEventRecord)
+  
+  TRY_DLSYM("cuEventRecordWithFlags", cuEventRecordWithFlags_intercepted)
+  
+  TRY_DLSYM("cuEventQuery", cuEventQuery_intercepted)
+  
+  TRY_DLSYM("cuEventSynchronize", cuEventSynchronize_intercepted)
+  
+  TRY_DLSYM("cuEventDestroy", cuEventDestroy_intercepted)
+  
+  TRY_DLSYM("cuEventElapsedTime", cuEventElapsedTime_intercepted)
+  
+  TRY_DLSYM("cuStreamWaitValue32", cuStreamWaitValue32_intercepted)
+  
+  TRY_DLSYM("cuStreamWriteValue32", cuStreamWriteValue32_intercepted)
+  
+  TRY_DLSYM("cuStreamWaitValue64", cuStreamWaitValue64_intercepted)
+  
+  TRY_DLSYM("cuStreamWriteValue64", cuStreamWriteValue64_intercepted)
+  
+  TRY_DLSYM("cuStreamBatchMemOp", cuStreamBatchMemOp_intercepted)
+  
+  TRY_DLSYM("cuStreamCreate", cuStreamCreate)
+  
+  TRY_DLSYM("cuStreamCreateWithPriority", cuStreamCreateWithPriority_intercepted)
+  
+  TRY_DLSYM("cuStreamGetPriority", cuStreamGetPriority)
+  
+  TRY_DLSYM("cuStreamGetFlags", cuStreamGetFlags_intercepted)
+  
+  TRY_DLSYM("cuStreamGetCtx", cuStreamGetCtx_intercepted)
+  
+  TRY_DLSYM("cuStreamGetId", cuStreamGetId_intercepted)
+  
+  TRY_DLSYM("cuStreamDestroy", cuStreamDestroy_intercepted)
+  
+  TRY_DLSYM("cuStreamWaitEvent", cuStreamWaitEvent_intercepted)
+  
+  TRY_DLSYM("cuStreamAddCallback", cuStreamAddCallback_intercepted)
+  
+  TRY_DLSYM("cuStreamSynchronize", cuStreamSynchronize)
+  
+  TRY_DLSYM("cuStreamQuery", cuStreamQuery_intercepted)
+  
+  TRY_DLSYM("cuStreamAttachMemAsync", cuStreamAttachMemAsync_intercepted)
+  
+  TRY_DLSYM("cuStreamCopyAttributes", cuStreamCopyAttributes_intercepted)
+  
+  TRY_DLSYM("cuStreamGetAttribute", cuStreamGetAttribute_intercepted)
+  
+  TRY_DLSYM("cuStreamSetAttribute", cuStreamSetAttribute_intercepted)
+  
+  TRY_DLSYM("cuDeviceCanAccessPeer", cuDeviceCanAccessPeer_intercepted)
+  
+  TRY_DLSYM("cuCtxEnablePeerAccess", cuCtxEnablePeerAccess_intercepted)
+  
+  TRY_DLSYM("cuCtxDisablePeerAccess", cuCtxDisablePeerAccess_intercepted)
+  
+  TRY_DLSYM("cuIpcGetEventHandle", cuIpcGetEventHandle_intercepted)
+  
+  TRY_DLSYM("cuIpcOpenEventHandle", cuIpcOpenEventHandle_intercepted)
+  
+  TRY_DLSYM("cuIpcGetMemHandle", cuIpcGetMemHandle_intercepted)
+  
+  TRY_DLSYM("cuIpcOpenMemHandle", cuIpcOpenMemHandle_intercepted)
+  
+  TRY_DLSYM("cuIpcCloseMemHandle", cuIpcCloseMemHandle_intercepted)
+  
+  TRY_DLSYM("cuGraphicsUnregisterResource", cuGraphicsUnregisterResource_intercepted)
+  
+  TRY_DLSYM("cuGraphicsMapResources", cuGraphicsMapResources_intercepted)
+  
+  TRY_DLSYM("cuGraphicsUnmapResources", cuGraphicsUnmapResources_intercepted)
+  
+  TRY_DLSYM("cuGraphicsResourceSetMapFlags", cuGraphicsResourceSetMapFlags_intercepted)
+  
+  TRY_DLSYM("cuGraphicsSubResourceGetMappedArray", cuGraphicsSubResourceGetMappedArray_intercepted)
+  
+  TRY_DLSYM("cuGraphicsResourceGetMappedMipmappedArray", cuGraphicsResourceGetMappedMipmappedArray_intercepted)
+  
+  TRY_DLSYM("cuGraphicsResourceGetMappedPointer", cuGraphicsResourceGetMappedPointer_intercepted)
+  
+  TRY_DLSYM("cuGetExportTable", cuGetExportTable)
+  
+  TRY_DLSYM("cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags", cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags)
+  
+  TRY_DLSYM("cuOccupancyAvailableDynamicSMemPerBlock", cuOccupancyAvailableDynamicSMemPerBlock_intercepted)
+  
+  TRY_DLSYM("cuOccupancyMaxPotentialClusterSize", cuOccupancyMaxPotentialClusterSize_intercepted)
+  
+  TRY_DLSYM("cuOccupancyMaxActiveClusters", cuOccupancyMaxActiveClusters_intercepted)
+  
+  TRY_DLSYM("cuMemAdvise", cuMemAdvise_intercepted)
+  
+  TRY_DLSYM("cuMemPrefetchAsync", cuMemPrefetchAsync_intercepted)
+  
+  TRY_DLSYM("cuMemRangeGetAttribute", cuMemRangeGetAttribute_intercepted)
+  
+  TRY_DLSYM("cuMemRangeGetAttributes", cuMemRangeGetAttributes_intercepted)
+  
+  TRY_DLSYM("cuGetErrorString", cuGetErrorString_intercepted)
+  
+  TRY_DLSYM("cuGetErrorName", cuGetErrorName_intercepted)
+  
+  TRY_DLSYM("cuGraphCreate", cuGraphCreate_intercepted)
+  
+  TRY_DLSYM("cuGraphAddKernelNode", cuGraphAddKernelNode_intercepted)
+  
+  TRY_DLSYM("cuGraphKernelNodeGetParams", cuGraphKernelNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphKernelNodeSetParams", cuGraphKernelNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddMemcpyNode", cuGraphAddMemcpyNode_intercepted)
+  
+  TRY_DLSYM("cuGraphMemcpyNodeGetParams", cuGraphMemcpyNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphMemcpyNodeSetParams", cuGraphMemcpyNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddMemsetNode", cuGraphAddMemsetNode_intercepted)
+  
+  TRY_DLSYM("cuGraphMemsetNodeGetParams", cuGraphMemsetNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphMemsetNodeSetParams", cuGraphMemsetNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddHostNode", cuGraphAddHostNode_intercepted)
+  
+  TRY_DLSYM("cuGraphHostNodeGetParams", cuGraphHostNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphHostNodeSetParams", cuGraphHostNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddChildGraphNode", cuGraphAddChildGraphNode_intercepted)
+  
+  TRY_DLSYM("cuGraphChildGraphNodeGetGraph", cuGraphChildGraphNodeGetGraph_intercepted)
+  
+  TRY_DLSYM("cuGraphAddEmptyNode", cuGraphAddEmptyNode_intercepted)
+  
+  TRY_DLSYM("cuGraphAddEventRecordNode", cuGraphAddEventRecordNode_intercepted)
+  
+  TRY_DLSYM("cuGraphEventRecordNodeGetEvent", cuGraphEventRecordNodeGetEvent_intercepted)
+  
+  TRY_DLSYM("cuGraphEventRecordNodeSetEvent", cuGraphEventRecordNodeSetEvent_intercepted)
+  
+  TRY_DLSYM("cuGraphAddEventWaitNode", cuGraphAddEventWaitNode_intercepted)
+  
+  TRY_DLSYM("cuGraphEventWaitNodeGetEvent", cuGraphEventWaitNodeGetEvent_intercepted)
+  
+  TRY_DLSYM("cuGraphEventWaitNodeSetEvent", cuGraphEventWaitNodeSetEvent_intercepted)
+  
+  TRY_DLSYM("cuGraphAddExternalSemaphoresSignalNode", cuGraphAddExternalSemaphoresSignalNode_intercepted)
+  
+  TRY_DLSYM("cuGraphExternalSemaphoresSignalNodeGetParams", cuGraphExternalSemaphoresSignalNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExternalSemaphoresSignalNodeSetParams", cuGraphExternalSemaphoresSignalNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddExternalSemaphoresWaitNode", cuGraphAddExternalSemaphoresWaitNode_intercepted)
+  
+  TRY_DLSYM("cuGraphExternalSemaphoresWaitNodeGetParams", cuGraphExternalSemaphoresWaitNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExternalSemaphoresWaitNodeSetParams", cuGraphExternalSemaphoresWaitNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecExternalSemaphoresSignalNodeSetParams", cuGraphExecExternalSemaphoresSignalNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecExternalSemaphoresWaitNodeSetParams", cuGraphExecExternalSemaphoresWaitNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddMemAllocNode", cuGraphAddMemAllocNode_intercepted)
+  
+  TRY_DLSYM("cuGraphMemAllocNodeGetParams", cuGraphMemAllocNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphAddMemFreeNode", cuGraphAddMemFreeNode_intercepted)
+  
+  TRY_DLSYM("cuGraphMemFreeNodeGetParams", cuGraphMemFreeNodeGetParams_intercepted)
+  
+  TRY_DLSYM("cuDeviceGraphMemTrim", cuDeviceGraphMemTrim_intercepted)
+  
+  TRY_DLSYM("cuDeviceGetGraphMemAttribute", cuDeviceGetGraphMemAttribute_intercepted)
+  
+  TRY_DLSYM("cuDeviceSetGraphMemAttribute", cuDeviceSetGraphMemAttribute_intercepted)
+  
+  TRY_DLSYM("cuGraphClone", cuGraphClone_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeFindInClone", cuGraphNodeFindInClone_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeGetType", cuGraphNodeGetType_intercepted)
+  
+  TRY_DLSYM("cuGraphGetNodes", cuGraphGetNodes_intercepted)
+  
+  TRY_DLSYM("cuGraphGetRootNodes", cuGraphGetRootNodes_intercepted)
+  
+  TRY_DLSYM("cuGraphGetEdges", cuGraphGetEdges_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeGetDependencies", cuGraphNodeGetDependencies_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeGetDependentNodes", cuGraphNodeGetDependentNodes_intercepted)
+  
+  TRY_DLSYM("cuGraphAddDependencies", cuGraphAddDependencies_intercepted)
+  
+  TRY_DLSYM("cuGraphRemoveDependencies", cuGraphRemoveDependencies_intercepted)
+  
+  TRY_DLSYM("cuGraphDestroyNode", cuGraphDestroyNode_intercepted)
+  
+  TRY_DLSYM("cuGraphInstantiate", cuGraphInstantiate_intercepted)
+  
+  TRY_DLSYM("cuGraphUpload", cuGraphUpload_intercepted)
+  
+  TRY_DLSYM("cuGraphLaunch", cuGraphLaunch_intercepted)
+  
+  TRY_DLSYM("cuGraphExecDestroy", cuGraphExecDestroy_intercepted)
+  
+  TRY_DLSYM("cuGraphDestroy", cuGraphDestroy_intercepted)
+  
+  TRY_DLSYM("cuStreamBeginCapture", cuStreamBeginCapture_intercepted)
+  
+  TRY_DLSYM("cuStreamBeginCaptureToGraph", cuStreamBeginCaptureToGraph_intercepted)
+  
+  TRY_DLSYM("cuStreamEndCapture", cuStreamEndCapture_intercepted)
+  
+  TRY_DLSYM("cuStreamIsCapturing", cuStreamIsCapturing)
+  
+  TRY_DLSYM("cuStreamGetCaptureInfo", cuStreamGetCaptureInfo_intercepted)
+  
+  TRY_DLSYM("cuStreamUpdateCaptureDependencies", cuStreamUpdateCaptureDependencies_intercepted)
+  
+  TRY_DLSYM("cuGraphExecKernelNodeSetParams", cuGraphExecKernelNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecMemcpyNodeSetParams", cuGraphExecMemcpyNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecMemsetNodeSetParams", cuGraphExecMemsetNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecHostNodeSetParams", cuGraphExecHostNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecChildGraphNodeSetParams", cuGraphExecChildGraphNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecEventRecordNodeSetEvent", cuGraphExecEventRecordNodeSetEvent_intercepted)
+  
+  TRY_DLSYM("cuGraphExecEventWaitNodeSetEvent", cuGraphExecEventWaitNodeSetEvent_intercepted)
+  
+  TRY_DLSYM("cuThreadExchangeStreamCaptureMode", cuThreadExchangeStreamCaptureMode_intercepted)
+  
+  TRY_DLSYM("cuGraphExecUpdate", cuGraphExecUpdate_intercepted)
+  
+  TRY_DLSYM("cuGraphKernelNodeCopyAttributes", cuGraphKernelNodeCopyAttributes_intercepted)
+  
+  TRY_DLSYM("cuGraphDebugDotPrint", cuGraphDebugDotPrint_intercepted)
+  
+  TRY_DLSYM("cuUserObjectRetain", cuUserObjectRetain_intercepted)
+  
+  TRY_DLSYM("cuUserObjectRelease", cuUserObjectRelease_intercepted)
+  
+  TRY_DLSYM("cuGraphRetainUserObject", cuGraphRetainUserObject_intercepted)
+  
+  TRY_DLSYM("cuGraphReleaseUserObject", cuGraphReleaseUserObject_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeSetEnabled", cuGraphNodeSetEnabled_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeGetEnabled", cuGraphNodeGetEnabled_intercepted)
+  
+  TRY_DLSYM("cuGraphInstantiateWithParams", cuGraphInstantiateWithParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecGetFlags", cuGraphExecGetFlags_intercepted)
+  
+  TRY_DLSYM("cuGraphAddNode", cuGraphAddNode_intercepted)
+  
+  TRY_DLSYM("cuGraphNodeSetParams", cuGraphNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphExecNodeSetParams", cuGraphExecNodeSetParams_intercepted)
+  
+  TRY_DLSYM("cuGraphConditionalHandleCreate", cuGraphConditionalHandleCreate_intercepted)
+  
+  TRY_DLSYM("cuDeviceRegisterAsyncNotification", cuDeviceRegisterAsyncNotification_intercepted)
+  
+  TRY_DLSYM("cuDeviceUnregisterAsyncNotification", cuDeviceUnregisterAsyncNotification_intercepted)
+  
+  TRY_DLSYM("cuLibraryLoadData", cuLibraryLoadData_intercepted)
+  TRY_DLSYM("cuLibraryLoadFromFile", cuLibraryLoadFromFile_intercepted)
+  TRY_DLSYM("cuLinkAddData", cuLinkAddData_intercepted)
+  TRY_DLSYM("cuLinkAddFile", cuLinkAddFile_intercepted)
+  TRY_DLSYM("cuLinkComplete", cuLinkComplete_intercepted)
+  TRY_DLSYM("cuLinkDestroy", cuLinkDestroy_intercepted)
+  TRY_DLSYM("cuMemPoolImportFromShareableHandle", cuMemPoolImportFromShareableHandle_intercepted)
+  TRY_DLSYM("cuGLCtxCreate", cuGLCtxCreate_intercepted)
+  TRY_DLSYM("cuGLInit", cuGLInit_intercepted)
+  // NO_INTERCEPT("cuGLGetDevices")
+  // NO_INTERCEPT("cuGLRegisterBufferObject")
+  // NO_INTERCEPT("cuGLMapBufferObject")
+  // NO_INTERCEPT("cuGLMapBufferObjectAsync")
+  // NO_INTERCEPT("cuGLUnmapBufferObject")
+  // NO_INTERCEPT("cuGLUnmapBufferObjectAsync")
+  // NO_INTERCEPT("cuGLUnregisterBufferObject")
+  // NO_INTERCEPT("cuGLSetBufferObjectMapFlags")
+  // NO_INTERCEPT("cuGraphicsGLRegisterImage")
+  // NO_INTERCEPT("cuGraphicsGLRegisterBuffer")
+  // NO_INTERCEPT("cuGraphicsEGLRegisterImage")
+  // NO_INTERCEPT("cuEGLStreamConsumerConnect")
+  // NO_INTERCEPT("cuEGLStreamConsumerDisconnect")
+  // NO_INTERCEPT("cuEGLStreamConsumerAcquireFrame")
+  // NO_INTERCEPT("cuEGLStreamConsumerReleaseFrame")
+  // NO_INTERCEPT("cuEGLStreamProducerConnect")
+  // NO_INTERCEPT("cuEGLStreamProducerDisconnect")
+  // NO_INTERCEPT("cuEGLStreamProducerPresentFrame")
+  // NO_INTERCEPT("cuEGLStreamProducerReturnFrame")
+  // NO_INTERCEPT("cuGraphicsResourceGetMappedEglFrame")
+  // NO_INTERCEPT("cuEGLStreamConsumerConnectWithFlags")
+  // NO_INTERCEPT("cuProfilerInitialize")
+  TRY_DLSYM("cuProfilerStart", cuProfilerStart_intercepted)
+  TRY_DLSYM("cuProfilerStop", cuProfilerStop_intercepted)
+  // NO_INTERCEPT("cuVDPAUGetDevice")
+  // NO_INTERCEPT("cuVDPAUCtxCreate")
+  // NO_INTERCEPT("cuGraphicsVDPAURegisterVideoSurface")
+  // NO_INTERCEPT("cuGraphicsVDPAURegisterOutputSurface")
+  TRY_DLSYM("cuGraphInstantiateWithFlags", cuGraphInstantiateWithFlags_intercepted)
+  TRY_DLSYM("cuGraphKernelNodeGetAttribute", cuGraphKernelNodeGetAttribute_intercepted)
+  TRY_DLSYM("cuGraphKernelNodeSetAttribute", cuGraphKernelNodeSetAttribute_intercepted)
+  TRY_DLSYM("cuUserObjectCreate", cuUserObjectCreate_intercepted)
+  TRY_DLSYM("cuOccupancyMaxPotentialBlockSize", cuOccupancyMaxPotentialBlockSize)
+  // NO_INTERCEPT("cuGraphInstantiateWithParams_ptsz")
+  void *result = real_dlsym(handle, symbol);
+  assert(result != nullptr);
+  // for all other func
+  return result;
+}
+//==================================================================================================================
 
 /* Interception version for `cuGetProcAddress` and all needed CUDA funcs */
 extern "C" CUresult getProcAddressBySymbol(const char* symbol, void** pfn, int cudaVersion, cuuint64_t flags,

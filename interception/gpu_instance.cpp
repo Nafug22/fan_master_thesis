@@ -27,7 +27,7 @@ void GPUInstance::implement_cuda_function(){
       std::get<0>(args) = &device;
       CUresult result = std::apply(cuDeviceGet, args);
       response_.set_curesult(result);
-      response_ << args;
+      response_ << device << std::get<1>(args);
   } else if(FUNC_COMP(function_name, cuCtxCreate)){
       std::cout << "<<<<<<<<<<implemented as " << function_name << std::endl;
       using param_t = FunctionTraits<decltype(cuCtxCreate)>::ParameterTuple;
@@ -179,7 +179,7 @@ void GPUInstance::implement_cuda_function(){
       std::cout << "<<<<<<<<<<implemented as cuDeviceGetName" << std::endl;
       using param_t = FunctionTraits<decltype(cuDeviceGetName)>::ParameterTuple;
       param_t args; deserializer_ >> args;
-      char name[256];
+      char name[std::get<1>(args)];
       std::get<0>(args) = name;
       CUresult result = std::apply(cuDeviceGetName, args);
       response_.set_curesult(result);
@@ -412,7 +412,7 @@ void GPUInstance::implement_cuda_function(){
       response_ << result;
       response_ << ret1;
   } else {
-      func_map[function_name]();
+      if(func_map.count(function_name)) func_map[function_name]();
   }
 
   return_result();

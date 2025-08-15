@@ -46,6 +46,7 @@ class GPUInstance{
     {
         cuDeviceGet(&device_, device_id);
         cuCtxCreate(&cucontext_, 0, device_);
+        
     }
     ~GPUInstance() {
         cuCtxDestroy(cucontext_);

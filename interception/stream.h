@@ -429,7 +429,10 @@ class VirtualGPU {
           std::cout << "[ERROR] vgpu_ptr_ is null!\n";
           std::abort();
       }
-      
+      if(byte_size > vgpu_size_) {
+          std::cout << "[Error] vgpu is not large enough\n";
+          std::abort();
+      }
       if (data_ptr == nullptr) {
           std::cout << "[ERROR] data_ptr is null!\n";
           std::abort();
